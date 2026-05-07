@@ -127,68 +127,87 @@ export default function Home() {
   const [scale, setScale] = useState(1);
   const router = useRouter();
 
+  // 🚀 ESTADOS VIP (NUBE)
+  const [savedConfigs, setSavedConfigs] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const [showVault, setShowVault] = useState(false); // Muestra la bóveda
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
       } else {
+        // Obtenemos todo el historial de la bóveda al iniciar
         try {
           const userRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(userRef);
-          if (docSnap.exists() && docSnap.data().savedConfig) {
-            const data = docSnap.data();
-            setBrand(data.savedConfig.brand);
-            setDevice(data.savedConfig.device);
-            setDpiMode(data.savedConfig.dpiMode);
-            setFirePref(data.savedConfig.firePref);
-            setScale(data.savedConfig.scale || 1);
-            setResult(data.savedConfig.result);
+          if (docSnap.exists() && docSnap.data().savedConfigs) {
+            setSavedConfigs(docSnap.data().savedConfigs);
           }
         } catch (e) {
-          console.error("Error cargando config VIP", e);
+          console.error("Error cargando Bóveda VIP", e);
         }
       }
     });
     return () => unsubscribe();
-  }, [router, setBrand, setDevice]);
+  }, [router]);
 
+  // Función para GUARDAR nueva config en la Bóveda
   const handleSaveToCloud = async () => {
-    if (!auth.currentUser || !result) return;
+    if (!auth.currentUser || !result || !selectedDevice) return;
     setIsSaving(true);
     try {
-      const userRef = doc(db, "users", auth.currentUser.uid);
-      await setDoc(
-        userRef,
-        {
-          savedConfig: {
-            brand: selectedBrand,
-            device: selectedDevice,
-            dpiMode,
-            firePref,
-            scale,
-            result,
-          },
-        },
-        { merge: true },
-      );
+      const newConfig = {
+        id: Date.now().toString(),
+        name: `${selectedDevice.name} (${Math.round(scale * 100)}%)`,
+        date: new Date().toLocaleDateString(),
+        brand: selectedBrand,
+        device: selectedDevice,
+        dpiMode,
+        firePref,
+        scale,
+        result,
+      };
 
-      setSaveMsg("¡Guardado en la Nube! ☁️");
+      const updatedConfigs = [newConfig, ...savedConfigs]; // Lo nuevo va arriba
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
+
+      setSavedConfigs(updatedConfigs);
+      setSaveMsg("¡Guardado! ☁️");
       setTimeout(() => setSaveMsg(""), 3000);
     } catch (error) {
-      setSaveMsg("Error al guardar ❌");
+      setSaveMsg("Error ❌");
       setTimeout(() => setSaveMsg(""), 3000);
     } finally {
       setIsSaving(false);
     }
   };
 
-  useEffect(() => {
-    setResult(null);
-    setScale(1);
-  }, [selectedDevice, selectedBrand]);
+  // Función para CARGAR desde la bóveda
+  const handleLoadConfig = (config: any) => {
+    setBrand(config.brand);
+    setDevice(config.device);
+    setDpiMode(config.dpiMode);
+    setFirePref(config.firePref);
+    setScale(config.scale || 1);
+    setResult(config.result);
+    setShowVault(false);
+  };
+
+  // Función para ELIMINAR de la bóveda
+  const handleDeleteConfig = async (id: string) => {
+    if (!auth.currentUser) return;
+    const updatedConfigs = savedConfigs.filter((c) => c.id !== id);
+    setSavedConfigs(updatedConfigs);
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
+    } catch (error) {
+      console.error("Error eliminando configuración", error);
+    }
+  };
 
   const handleGenerate = () => {
     if (!selectedDevice) return;
@@ -206,14 +225,20 @@ export default function Home() {
     }
   };
 
-  const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
+  const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBrand(e.target.value as DeviceBrand);
+    setResult(null);
+    setScale(1);
+  };
+
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!selectedBrand) return;
     const model = getModelsByBrand(selectedBrand).find(
       (m) => m.name === e.target.value,
     );
     setDevice(model ?? null);
+    setResult(null);
+    setScale(1);
   };
 
   const currentSens = result
@@ -293,6 +318,86 @@ export default function Home() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
+      {/* 🔮 MODAL DE LA BÓVEDA VIP */}
+      <AnimatePresence>
+        {showVault && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07080f]/80 p-4 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-[500px]"
+            >
+              <GlassCard className="p-6 lg:p-8 flex flex-col max-h-[80vh]">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl lg:text-2xl font-display font-black text-white">
+                      📂 Bóveda VIP
+                    </h3>
+                    <p className="text-[#8b8fa5] text-[11px] lg:text-xs font-medium uppercase tracking-widest mt-1">
+                      Tus configuraciones guardadas
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowVault(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-zinc-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-2 space-y-3 scrollbar-hide">
+                  {savedConfigs.length === 0 ? (
+                    <div className="text-center py-10">
+                      <span className="text-4xl opacity-30 block mb-3">👻</span>
+                      <p className="text-sm font-semibold text-zinc-500">
+                        Aún no hay configuraciones guardadas
+                      </p>
+                    </div>
+                  ) : (
+                    savedConfigs.map((config) => (
+                      <div
+                        key={config.id}
+                        className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#141728]/80 p-4 transition-all hover:border-[#ff6b35]/30 hover:bg-[#141728]"
+                      >
+                        <div>
+                          <p className="font-bold text-white text-sm">
+                            {config.name}
+                          </p>
+                          <p className="text-[11px] font-semibold text-[#8b8fa5] uppercase tracking-wider mt-0.5">
+                            {config.date} •{" "}
+                            {config.dpiMode ? "Con DPI" : "Sin DPI"}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleLoadConfig(config)}
+                            className="rounded-xl bg-white/5 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-[#ff6b35] hover:shadow-[0_0_15px_rgba(255,107,53,0.4)]"
+                          >
+                            Cargar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteConfig(config.id)}
+                            className="rounded-xl bg-white/5 px-3 py-2 text-xs font-bold text-zinc-400 transition-all hover:bg-red-500/20 hover:text-red-400"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-8">
         {/* PANEL IZQUIERDO — CONTROLES */}
         <GlassCard className="flex flex-col gap-6 lg:gap-8">
@@ -532,11 +637,9 @@ export default function Home() {
                             />
                           </svg>
                         </button>
-
                         <span className="min-w-[56px] text-center font-mono text-[11px] lg:text-[12px] font-bold text-[#ffd36b]">
                           {Math.round(scale * 100)}%
                         </span>
-
                         <button
                           onClick={() =>
                             setScale((prev) =>
@@ -580,7 +683,7 @@ export default function Home() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="group relative z-10 overflow-hidden rounded-[20px] border border-[#ffb74d]/20 bg-gradient-to-br from-[rgba(255,183,77,0.08)] to-[rgba(255,140,0,0.04)] p-5 lg:p-6"
+                    className="group relative z-10 overflow-hidden rounded-[20px] border border-[#ffb74d]/20 bg-gradient-to-br from-[rgba(255,183,77,0.08)] to-[rgba(255,140,0,0.04)] p-5 lg:p-6 mb-4"
                   >
                     <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                     <div className="relative flex items-center justify-between">
@@ -600,17 +703,26 @@ export default function Home() {
                     </div>
                   </motion.div>
 
-                  <button
-                    onClick={handleSaveToCloud}
-                    disabled={isSaving}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-3.5 text-xs font-bold uppercase tracking-widest text-[#8b8fa5] transition-all hover:bg-white/10 hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    {isSaving
-                      ? "⏳ Subiendo a la base de datos..."
-                      : saveMsg
-                        ? saveMsg
-                        : "💾 Guardar Sensibilidad VIP"}
-                  </button>
+                  {/* 👈 BOTONES DUALES (GUARDAR Y BÓVEDA) */}
+                  <div className="flex gap-3 relative z-10">
+                    <button
+                      onClick={() => setShowVault(true)}
+                      className="flex-1 rounded-xl bg-white/5 py-3.5 text-[11px] lg:text-xs font-bold uppercase tracking-widest text-[#8b8fa5] transition-all hover:bg-white/10 hover:text-white active:scale-95 shadow-inner"
+                    >
+                      📂 Mi Bóveda
+                    </button>
+                    <button
+                      onClick={handleSaveToCloud}
+                      disabled={isSaving}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-[#ff6b35] to-[#f7931e] py-3.5 text-[11px] lg:text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110 active:scale-95 disabled:pointer-events-none disabled:opacity-50 shadow-[0_4px_15px_rgba(255,107,53,0.3)]"
+                    >
+                      {isSaving
+                        ? "⏳ Guardando..."
+                        : saveMsg
+                          ? saveMsg
+                          : "💾 Guardar"}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ) : (

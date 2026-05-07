@@ -2,7 +2,6 @@
 
 import { auth, db, googleProvider } from "@/shared/config/firebase";
 import { GlassCard } from "@/shared/ui/GlassCard";
-import { Particles } from "@/shared/ui/Particles";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -118,7 +117,6 @@ export default function LoginPage() {
     }
   };
 
-  // Función exclusiva para la ventana flotante
   const submitForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) return;
@@ -129,7 +127,7 @@ export default function LoginPage() {
         "success",
         "Correo enviado. Revisa tu bandeja de entrada o spam.",
       );
-      setShowForgotModal(false); // Cerramos el modal tras enviar
+      setShowForgotModal(false);
       setResetEmail("");
     } catch (err: any) {
       if (err.code === "auth/user-not-found")
@@ -169,10 +167,8 @@ export default function LoginPage() {
   const animationDirection = activeTab === "login" ? -1 : 1;
 
   return (
-    <main className="relative flex min-h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#07080f] px-4 py-10 font-body">
-      <Particles />
-
-      {/* VENTANA FLOTANTE (MODAL) DE RECUPERACIÓN */}
+    // 👈 AQUÍ ESTÁ EL DIV QUE ABRE
+    <div className="relative flex min-h-screen w-full items-center justify-center px-4 py-10 font-body">
       <AnimatePresence>
         {showForgotModal && (
           <motion.div
@@ -478,6 +474,6 @@ export default function LoginPage() {
           </button>
         </GlassCard>
       </motion.div>
-    </main>
+    </div> // 👈 ESTE ES EL CIERRE CORRECTO
   );
 }
