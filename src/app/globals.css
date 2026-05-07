@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+body {
+  background-color: #07080f;
+  color: #ffffff;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  font-family: 'Rajdhani', sans-serif;
+  /* MAGIA PWA: Elimina el rebote al hacer scroll en iOS y Android */
+  overscroll-behavior-y: none;
+  /* MAGIA PWA: Evita que el usuario seleccione textos por accidente al tocar la pantalla */
+  -webkit-user-select: none;
+  user-select: none;
+  /* MAGIA PWA: Quita el parpadeo gris al tocar botones en móviles */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Permitimos que el usuario solo pueda copiar los resultados si quiere */
+.selectable-text {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+button,
+select,
+input {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* MAGIA PWA: Elimina el retraso de 300ms al hacer clic y bloquea el doble-tap zoom */
+  touch-action: manipulation;
+}
