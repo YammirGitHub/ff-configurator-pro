@@ -586,7 +586,7 @@ export default function Home() {
                 exit={{ opacity: 0, scale: 0.96 }}
               >
                 <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/[0.07] bg-[#0e1020]/90 p-5 lg:p-8 shadow-[0_8px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-                  <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-[#ff6b35]/10 blur-[80px]" />
+                  <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.15)_0%,transparent_70%)]" />
 
                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-2">
                     <div>

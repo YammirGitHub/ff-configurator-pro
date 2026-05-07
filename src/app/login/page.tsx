@@ -140,25 +140,23 @@ export default function LoginPage() {
 
   const formVariants = {
     hidden: (direction: number) => ({
-      x: direction > 0 ? 30 : -30,
+      x: direction > 0 ? 20 : -20, // Distancia reducida para más fluidez
       opacity: 0,
-      filter: "blur(4px)",
+      // ❌ filter: "blur(4px)" <- ELIMINADO para no quemar la GPU
     }),
     visible: {
       x: 0,
       opacity: 1,
-      filter: "blur(0px)",
       transition: {
-        duration: 0.4,
+        duration: 0.35, // Ligeramente más rápido
         ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
     exit: (direction: number) => ({
-      x: direction > 0 ? -30 : 30,
+      x: direction > 0 ? -20 : 20,
       opacity: 0,
-      filter: "blur(4px)",
       transition: {
-        duration: 0.3,
+        duration: 0.25,
         ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     }),
