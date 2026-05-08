@@ -41,14 +41,22 @@ export default function LoginPage() {
   }, [router]);
 
   const ensureUserDoc = async (user: any, customName?: string) => {
+    // 👈 LÓGICA SENIOR: Identificamos si el correo que entra eres TÚ
+    const isAdmin = user.email === "jjhor24@gmail.com";
+
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
+
     if (!snap.exists()) {
       await setDoc(ref, {
         email: user.email,
-        displayName: customName || user.displayName || "Usuario FF",
-        activo: false,
-        rol: "user",
+        // Si eres admin, te pone tu nombre real, si no, "Usuario FF"
+        displayName: isAdmin
+          ? "Yammir (Admin)"
+          : customName || user.displayName || "Usuario FF",
+        // Si eres admin, naces con VIP activado (true), si no, desactivado (false)
+        activo: isAdmin ? true : false,
+        rol: isAdmin ? "admin" : "user",
         createdAt: serverTimestamp(),
       });
     }

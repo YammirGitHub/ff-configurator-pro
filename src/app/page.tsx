@@ -9,7 +9,6 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
