@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "EA Yammir FF",
+    title: "Yammir Sens",
   },
 
   // 🌐 Configuración Open Graph (Lo que se ve al pasar el link por WhatsApp)
