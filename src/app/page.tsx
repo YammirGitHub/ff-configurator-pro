@@ -4,11 +4,13 @@ import { useDevice } from "@/entities/device/DeviceContext";
 import { DeviceBrand } from "@/entities/device/types";
 import { computeProConfig } from "@/features/calculator/math";
 import { auth, db } from "@/shared/config/firebase";
+import { PremiumModal } from "@/shared/ui/PremiumModal"; // 👈 IMPORTAMOS EL MODAL
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
@@ -126,33 +128,42 @@ export default function Home() {
   const [scale, setScale] = useState(1);
   const router = useRouter();
 
-  // 🚀 ESTADOS VIP (NUBE)
+  // 🚀 ESTADOS VIP Y NUBE
   const [savedConfigs, setSavedConfigs] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
-  const [showVault, setShowVault] = useState(false); // Muestra la bóveda
+  const [showVault, setShowVault] = useState(false);
+
+  // 💎 ESTADOS DEL SISTEMA DE PAGOS
+  const [isVip, setIsVip] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
       } else {
-        // Obtenemos todo el historial de la bóveda al iniciar
+        setUserEmail(user.email || "");
         try {
           const userRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(userRef);
-          if (docSnap.exists() && docSnap.data().savedConfigs) {
-            setSavedConfigs(docSnap.data().savedConfigs);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            // LÓGICA SENIOR: Validamos si el usuario pagó
+            setIsVip(data.activo === true);
+            if (data.savedConfigs) {
+              setSavedConfigs(data.savedConfigs);
+            }
           }
         } catch (e) {
-          console.error("Error cargando Bóveda VIP", e);
+          console.error("Error cargando datos del usuario", e);
         }
       }
     });
     return () => unsubscribe();
   }, [router]);
 
-  // Función para GUARDAR nueva config en la Bóveda
   const handleSaveToCloud = async () => {
     if (!auth.currentUser || !result || !selectedDevice) return;
     setIsSaving(true);
@@ -169,7 +180,7 @@ export default function Home() {
         result,
       };
 
-      const updatedConfigs = [newConfig, ...savedConfigs]; // Lo nuevo va arriba
+      const updatedConfigs = [newConfig, ...savedConfigs];
       const userRef = doc(db, "users", auth.currentUser.uid);
       await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
 
@@ -184,7 +195,6 @@ export default function Home() {
     }
   };
 
-  // Función para CARGAR desde la bóveda
   const handleLoadConfig = (config: any) => {
     setBrand(config.brand);
     setDevice(config.device);
@@ -195,7 +205,6 @@ export default function Home() {
     setShowVault(false);
   };
 
-  // Función para ELIMINAR de la bóveda
   const handleDeleteConfig = async (id: string) => {
     if (!auth.currentUser) return;
     const updatedConfigs = savedConfigs.filter((c) => c.id !== id);
@@ -208,7 +217,13 @@ export default function Home() {
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerateClick = () => {
+    // 💎 EL MURO DE PAGO: Si no es VIP, le abrimos el modal de Yape
+    if (!isVip) {
+      setShowPremiumModal(true);
+      return;
+    }
+
     if (!selectedDevice) return;
     setResult(computeProConfig(selectedDevice, dpiMode, firePref));
     setScale(1);
@@ -317,6 +332,13 @@ export default function Home() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
+      {/* 💎 EL MODAL DE PAGOS Y CANJE (Siempre oculto hasta que haga clic sin ser VIP) */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        userEmail={userEmail}
+      />
+
       {/* 🔮 MODAL DE LA BÓVEDA VIP */}
       <AnimatePresence>
         {showVault && (
@@ -563,11 +585,14 @@ export default function Home() {
               <motion.button
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                onClick={handleGenerate}
-                className="w-full overflow-hidden rounded-[16px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] py-5 lg:py-6 font-display text-sm lg:text-base font-bold uppercase tracking-[0.2em] text-white shadow-[0_8px_24px_rgba(255,107,53,0.3)] active:scale-[0.98]"
+                onClick={handleGenerateClick}
+                // 💎 UI SENIOR: El botón cambia de color y texto dependiendo si eres VIP o no
+                className={`w-full overflow-hidden rounded-[16px] py-5 lg:py-6 font-display text-sm lg:text-base font-bold uppercase tracking-[0.2em] shadow-[0_8px_24px_rgba(255,107,53,0.3)] active:scale-[0.98] transition-all duration-300 ${isVip ? "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white" : "bg-gradient-to-r from-[#ffd700] to-[#f7931e] text-[#4a3000]"}`}
               >
                 <span className="relative flex items-center justify-center gap-2">
-                  🚀 Generar Configuración PRO
+                  {isVip
+                    ? "🚀 Generar Configuración PRO"
+                    : "🔒 Desbloquear VIP para Generar"}
                 </span>
               </motion.button>
             )}
@@ -702,7 +727,6 @@ export default function Home() {
                     </div>
                   </motion.div>
 
-                  {/* 👈 BOTONES DUALES (GUARDAR Y BÓVEDA) */}
                   <div className="flex gap-3 relative z-10">
                     <button
                       onClick={() => setShowVault(true)}

@@ -1,0 +1,17 @@
+{
+  "name": "EA Yammir FF Configurador",
+  "short_name": "EY FF Config",
+  "description": "Configurador Senior para Free Fire",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080f",
+  "theme_color": "#ff6b35",
+  "icons": [
+    {
+      "src": "/icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { DeviceProvider } from "@/entities/device/DeviceContext";
-import { InstallPWA } from "@/shared/ui/InstallPWA"; // 👈 Añadimos la importación que faltaba
+import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
 import type { Metadata, Viewport } from "next";
@@ -9,35 +9,46 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "EA YAMMIR FF | Configurador PRO",
+  title: "EA YAMMIR FF - CONFIGURADOR PRO V2.0",
   description:
-    "Sensibilidad perfecta para Free Fire. IA optimizada para dar todo rojo.",
-  manifest: "/manifest.json",
+    "💎 Tu Ventaja VIP en Free Fire. Optimización de rendimiento y canje de códigos diarios.",
+
+  // 🍎 Configuración para que en iPhone se vea como una App Real
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "YAMMIR FF",
+    title: "EA Yammir FF",
   },
+
+  // 🌐 Configuración Open Graph (Lo que se ve al pasar el link por WhatsApp)
   openGraph: {
-    title: "EA YAMMIR FF | Configurador PRO",
-    description:
-      "Configuración precisa y matemática para dar TODO ROJO en Free Fire.",
-    siteName: "EA YAMMIR FF",
+    title: "EA YAMMIR FF - CONFIGURADOR PRO",
+    description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
+    url: "https://tu-dominio.vercel.app", // Cámbialo por tu URL real de Vercel luego
+    siteName: "EA Yammir FF",
     images: [
       {
-        url: "/assets/preview.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Preview del Configurador PRO",
+        alt: "EA YAMMIR FF Preview",
       },
     ],
+    locale: "es_PE",
     type: "website",
   },
+
+  // 🐦 Twitter (Por si lo compartes por ahí)
   twitter: {
     card: "summary_large_image",
-    title: "EA YAMMIR FF | Configurador PRO",
-    description: "Calculadora de sensibilidad PRO para Free Fire.",
-    images: ["/assets/preview.png"],
+    title: "EA YAMMIR FF PRO",
+    images: ["/og-image.png"],
+  },
+
+  // 📱 Iconos de acceso directo
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png", // Muy importante para iOS
   },
 };
 
@@ -55,6 +66,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="dark">
+      {/* El fondo bg-[#07080f] evita el "flashazo" blanco al cargar en Safari */}
       <body
         className={`${inter.variable} min-h-screen text-zinc-50 antialiased bg-[#07080f]`}
       >
