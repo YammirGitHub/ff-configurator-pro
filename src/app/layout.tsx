@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description:
     "💎 Tu Ventaja VIP en Free Fire. Optimización de rendimiento y canje de códigos diarios.",
 
+  // 👇 ESTA ES LA LLAVE MAESTRA QUE LE FALTABA A NEXT.JS PARA IOS
+  manifest: "/manifest.json",
+
   // 🍎 Configuración para que en iPhone se vea como una App Real
   appleWebApp: {
     capable: true,
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
     title: "Yammir Sens",
   },
 
-  // 🌐 Configuración Open Graph (Lo que se ve al pasar el link por WhatsApp)
+  // 🌐 Configuración Open Graph
   openGraph: {
     title: "EA YAMMIR FF - CONFIGURADOR PRO",
     description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
@@ -38,17 +41,17 @@ export const metadata: Metadata = {
     type: "website",
   },
 
-  // 🐦 Twitter (Por si lo compartes por ahí)
+  // 🐦 Twitter
   twitter: {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
     images: ["/og-image.png"],
   },
 
-  // 📱 Iconos de acceso directo
+  // 📱 Iconos
   icons: {
     icon: "/icon.png",
-    apple: "/icon.png", // Muy importante para iOS
+    apple: "/icon.png",
   },
 };
 
