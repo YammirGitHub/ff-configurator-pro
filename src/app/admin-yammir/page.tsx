@@ -12,6 +12,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -27,6 +28,18 @@ export default function AdminDashboard() {
 
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
+
+  // 👇 UI SENIOR: Sistema de Notificaciones y Modales
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -60,13 +73,12 @@ export default function AdminDashboard() {
       );
       setAllCodes(listCodes);
     } catch (e) {
-      console.error(e);
+      showToast("Error al cargar la base de datos", "error");
     } finally {
       setIsDataLoading(false);
     }
   };
 
-  // 👇 FIX 1: 100dvh en pantalla de carga
   if (isAuthLoading) {
     return (
       <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#07080f]">
@@ -95,28 +107,29 @@ export default function AdminDashboard() {
           u.id === userId ? { ...u, activo: !currentStatus } : u,
         ),
       );
+      showToast(
+        currentStatus ? "VIP revocado" : "VIP otorgado con éxito",
+        "success",
+      );
     } catch (e) {
-      alert("Error al actualizar");
+      showToast("Error al actualizar usuario", "error");
     } finally {
       setActionId(null);
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    if (
-      !confirm(
-        "¿Seguro que quieres eliminar a este usuario de la base de datos?",
-      )
-    )
-      return;
-    setActionId(userId);
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setActionId(userToDelete);
     try {
-      await deleteDoc(doc(db, "users", userId));
-      setUsers(users.filter((u) => u.id !== userId));
+      await deleteDoc(doc(db, "users", userToDelete));
+      setUsers(users.filter((u) => u.id !== userToDelete));
+      showToast("Usuario eliminado permanentemente", "success");
     } catch (e) {
-      alert("Error al borrar");
+      showToast("Error al eliminar usuario", "error");
     } finally {
       setActionId(null);
+      setUserToDelete(null);
     }
   };
 
@@ -128,7 +141,7 @@ export default function AdminDashboard() {
         creadoEl: new Date().toISOString(),
       });
     }
-    alert(`Éxito: ${cantidad} códigos generados.`);
+    showToast(`Éxito: ${cantidad} códigos generados.`, "success");
     fetchData();
   };
 
@@ -141,9 +154,75 @@ export default function AdminDashboard() {
   const totalVips = users.filter((u) => u.activo).length;
 
   return (
-    // 👇 FIX 2: 100dvh en contenedor principal
     <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
       <Particles />
+
+      {/* 👇 TOAST NOTIFICATION SENIOR */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-6 left-0 right-0 z-[300] mx-auto w-max max-w-[90%] px-4"
+          >
+            <div
+              className={`flex items-center gap-3 rounded-full px-5 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl border ${toast.type === "success" ? "bg-[#25D366]/10 border-[#25D366]/30 text-[#25D366]" : "bg-red-500/10 border-red-500/30 text-red-400"}`}
+            >
+              <span className="text-lg">
+                {toast.type === "success" ? "✅" : "⚠️"}
+              </span>
+              <p className="text-[13px] font-bold tracking-wide">{toast.msg}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 👇 MODAL DE CONFIRMACIÓN (Reemplaza el feo "confirm()") */}
+      <AnimatePresence>
+        {userToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="w-full max-w-[360px]"
+            >
+              <GlassCard className="p-6 border border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.15)] text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 text-3xl">
+                  ⚠️
+                </div>
+                <h3 className="text-lg font-display font-black text-white mb-2">
+                  ¿Eliminar Usuario?
+                </h3>
+                <p className="text-zinc-400 text-xs font-medium mb-6">
+                  Esta acción borrará al usuario de la base de datos
+                  permanentemente. No se puede deshacer.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setUserToDelete(null)}
+                    className="flex-1 rounded-xl bg-white/5 py-3 text-xs font-bold text-white hover:bg-white/10 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmDeleteUser}
+                    className="flex-1 rounded-xl bg-red-500 py-3 text-xs font-bold text-white hover:bg-red-600 transition-colors shadow-lg active:scale-95"
+                  >
+                    Sí, eliminar
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="relative z-10 w-full max-w-[1200px] space-y-6 lg:space-y-8">
         <div className="flex flex-col items-center md:items-start md:flex-row md:justify-between md:mb-2">
@@ -157,7 +236,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* CABECERA DE ESTADÍSTICAS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
           <GlassCard className="p-4 text-center flex flex-col justify-center">
             <p className="text-[10px] lg:text-[11px] font-bold text-[#8b8fa5] uppercase tracking-widest">
@@ -189,9 +267,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {/* BUSCADOR */}
         <div className="relative">
-          {/* 👇 FIX 3: text-base en el buscador */}
           <input
             type="text"
             placeholder="Buscar por correo electrónico..."
@@ -204,7 +280,6 @@ export default function AdminDashboard() {
           </span>
         </div>
 
-        {/* LISTA DE USUARIOS */}
         <GlassCard className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -277,9 +352,10 @@ export default function AdminDashboard() {
                             >
                               {u.activo ? "Quitar VIP" : "Hacer VIP"}
                             </button>
+                            {/* 👇 Al tocar Eliminar, abrimos nuestro modal en vez del feo confirm() */}
                             <button
                               disabled={actionId === u.id}
-                              onClick={() => deleteUser(u.id)}
+                              onClick={() => setUserToDelete(u.id)}
                               className="w-[100px] py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all active:scale-95"
                             >
                               Eliminar
@@ -295,11 +371,10 @@ export default function AdminDashboard() {
           </div>
         </GlassCard>
 
-        {/* SECCIÓN DE VOUCHERS */}
         <GlassCard className="p-6 lg:p-8 border-[#ffd700]/20">
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-xs lg:text-sm font-black text-[#ffd700] uppercase tracking-widest flex items-center gap-2">
-              🎟️ Códigos VIP (Base de Datos)
+              🎟️ Códigos VIP
             </h3>
             <span className="text-[10px] text-zinc-400 font-bold bg-white/5 px-3 py-1 rounded-full uppercase">
               {allCodes.filter((c) => !c.usado).length} Disponibles
@@ -326,7 +401,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(codeObj.id);
-                      alert("¡Código copiado!");
+                      showToast("¡Código copiado!", "success");
                     }}
                     className="text-[10px] lg:text-[11px] font-bold text-[#ff6b35] uppercase tracking-wider hover:text-white transition-colors bg-[#ff6b35]/10 px-3 py-1.5 rounded-lg border border-[#ff6b35]/20"
                   >

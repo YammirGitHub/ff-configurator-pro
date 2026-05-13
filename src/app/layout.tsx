@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "EA YAMMIR FF - CONFIGURADOR PRO",
     description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
-    url: "https://tu-dominio.vercel.app", // Cámbialo por tu URL real de Vercel luego
+    url: "https://configurador-pro-ea-yammir-ff.netlify.app",
     siteName: "EA Yammir FF",
     images: [
       {
