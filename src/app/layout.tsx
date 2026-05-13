@@ -69,7 +69,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="dark">
-      {/* 👇 FIX 1: 100dvh en el body universal */}
+      {/* 👇 FIX: 100dvh en el body universal */}
       <body
         className={`${inter.variable} min-h-[100dvh] text-zinc-50 antialiased bg-[#07080f]`}
       >

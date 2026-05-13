@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-  // 👇 UI SENIOR: Sistema de Notificaciones y Modales
+  // Sistema de Notificaciones y Modales
   const [toast, setToast] = useState<{
     msg: string;
     type: "success" | "error";
@@ -157,7 +157,6 @@ export default function AdminDashboard() {
     <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
       <Particles />
 
-      {/* 👇 TOAST NOTIFICATION SENIOR */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -178,7 +177,6 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
 
-      {/* 👇 MODAL DE CONFIRMACIÓN (Reemplaza el feo "confirm()") */}
       <AnimatePresence>
         {userToDelete && (
           <motion.div
@@ -226,8 +224,8 @@ export default function AdminDashboard() {
 
       <div className="relative z-10 w-full max-w-[1200px] space-y-6 lg:space-y-8">
         <div className="flex flex-col items-center md:items-start md:flex-row md:justify-between md:mb-2">
-          <div>
-            <h1 className="font-display text-2xl lg:text-3xl font-black text-white flex items-center gap-2">
+          <div className="text-center md:text-left">
+            <h1 className="font-display text-2xl lg:text-3xl font-black text-white flex items-center justify-center md:justify-start gap-2">
               👑 Panel Administrativo
             </h1>
             <p className="mt-1 font-body text-[11px] lg:text-xs font-semibold uppercase tracking-[0.2em] text-[#8b8fa5]">
@@ -236,7 +234,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+        {/* 👇 FIX: Grid Responsivo para los botones superiores */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6">
           <GlassCard className="p-4 text-center flex flex-col justify-center">
             <p className="text-[10px] lg:text-[11px] font-bold text-[#8b8fa5] uppercase tracking-widest">
               Total Usuarios
@@ -255,13 +254,13 @@ export default function AdminDashboard() {
           </GlassCard>
           <button
             onClick={() => generateCodes(5)}
-            className="md:col-span-1 rounded-[24px] bg-white/5 border border-white/10 text-[11px] lg:text-xs font-bold text-white uppercase hover:bg-white/10 transition-all active:scale-95"
+            className="col-span-1 md:col-span-1 rounded-[20px] bg-white/5 border border-white/10 text-[10px] sm:text-[11px] lg:text-xs font-bold text-white uppercase hover:bg-white/10 transition-all active:scale-95 py-3"
           >
             Generar 5 Códigos
           </button>
           <button
             onClick={fetchData}
-            className="md:col-span-1 rounded-[24px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-[11px] lg:text-xs font-bold text-white uppercase shadow-[0_4px_15px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95 transition-all"
+            className="col-span-1 md:col-span-1 rounded-[20px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-[10px] sm:text-[11px] lg:text-xs font-bold text-white uppercase shadow-[0_4px_15px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95 transition-all py-3"
           >
             Actualizar Lista
           </button>
@@ -280,97 +279,69 @@ export default function AdminDashboard() {
           </span>
         </div>
 
+        {/* 👇 FIX: Lista Responsiva en Flexbox (Cero Scroll Horizontal) */}
         <GlassCard className="overflow-hidden p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-white/5 bg-white/[0.02]">
-                  <th className="p-5 text-[10px] lg:text-[11px] font-black text-[#8b8fa5] uppercase tracking-[0.15em]">
-                    Usuario
-                  </th>
-                  <th className="p-5 text-[10px] lg:text-[11px] font-black text-[#8b8fa5] uppercase tracking-[0.15em]">
-                    Estado
-                  </th>
-                  <th className="p-5 text-[10px] lg:text-[11px] font-black text-[#8b8fa5] uppercase tracking-[0.15em]">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.03]">
-                {isDataLoading ? (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="p-10 text-center text-[13px] font-semibold tracking-widest text-zinc-500 uppercase animate-pulse"
+          <div className="flex flex-col divide-y divide-white/[0.03]">
+            {isDataLoading ? (
+              <div className="p-10 text-center text-[13px] font-semibold tracking-widest text-zinc-500 uppercase animate-pulse">
+                Cargando base de datos...
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="p-10 text-center text-[13px] font-semibold text-zinc-500">
+                No se encontraron usuarios.
+              </div>
+            ) : (
+              filteredUsers.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 hover:bg-white/[0.02] transition-colors gap-4"
+                >
+                  <div className="flex flex-col">
+                    <p className="text-sm lg:text-base font-bold text-white leading-tight">
+                      {u.displayName || "Sin nombre"}
+                    </p>
+                    <p className="mt-0.5 text-[11px] lg:text-xs text-zinc-400 font-medium tracking-wide">
+                      {u.email}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+                    <span
+                      className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] lg:text-[10px] font-black uppercase tracking-wider ${u.activo ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 shadow-[0_0_10px_rgba(37,211,102,0.1)]" : "bg-white/5 text-zinc-400 border border-white/10"}`}
                     >
-                      Cargando base de datos...
-                    </td>
-                  </tr>
-                ) : filteredUsers.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="p-10 text-center text-[13px] font-semibold text-zinc-500"
-                    >
-                      No se encontraron usuarios.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((u) => (
-                    <tr
-                      key={u.id}
-                      className="hover:bg-white/[0.03] transition-colors"
-                    >
-                      <td className="p-5">
-                        <p className="text-sm lg:text-base font-bold text-white leading-tight">
-                          {u.displayName || "Sin nombre"}
-                        </p>
-                        <p className="mt-0.5 text-[11px] lg:text-xs text-zinc-400 font-medium tracking-wide">
-                          {u.email}
-                        </p>
-                      </td>
-                      <td className="p-5">
-                        <span
-                          className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] lg:text-[10px] font-black uppercase tracking-wider ${u.activo ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 shadow-[0_0_10px_rgba(37,211,102,0.1)]" : "bg-white/5 text-zinc-400 border border-white/10"}`}
+                      {u.activo ? "💎 VIP Activo" : "Básico"}
+                    </span>
+
+                    {u.email === ADMIN_EMAIL ? (
+                      <span className="flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-[#ffd700]">
+                        👑 Intocable
+                      </span>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          disabled={actionId === u.id}
+                          onClick={() => toggleVip(u.id, u.activo)}
+                          className={`px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${u.activo ? "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white" : "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white shadow-[0_4px_12px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95"}`}
                         >
-                          {u.activo ? "💎 VIP Activo" : "Básico"}
-                        </span>
-                      </td>
-                      <td className="p-5">
-                        {u.email === ADMIN_EMAIL ? (
-                          <div className="flex w-[208px]">
-                            <span className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/10 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[#ffd700]">
-                              👑 Intocable
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              disabled={actionId === u.id}
-                              onClick={() => toggleVip(u.id, u.activo)}
-                              className={`w-[100px] py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${u.activo ? "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white" : "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white shadow-[0_4px_12px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95"}`}
-                            >
-                              {u.activo ? "Quitar VIP" : "Hacer VIP"}
-                            </button>
-                            {/* 👇 Al tocar Eliminar, abrimos nuestro modal en vez del feo confirm() */}
-                            <button
-                              disabled={actionId === u.id}
-                              onClick={() => setUserToDelete(u.id)}
-                              className="w-[100px] py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all active:scale-95"
-                            >
-                              Eliminar
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                          {u.activo ? "Quitar" : "Dar VIP"}
+                        </button>
+                        <button
+                          disabled={actionId === u.id}
+                          onClick={() => setUserToDelete(u.id)}
+                          className="px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </GlassCard>
 
+        {/* SECCIÓN DE VOUCHERS */}
         <GlassCard className="p-6 lg:p-8 border-[#ffd700]/20">
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-xs lg:text-sm font-black text-[#ffd700] uppercase tracking-widest flex items-center gap-2">
