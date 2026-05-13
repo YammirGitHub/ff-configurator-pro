@@ -41,20 +41,16 @@ export default function LoginPage() {
   }, [router]);
 
   const ensureUserDoc = async (user: any, customName?: string) => {
-    // 👈 LÓGICA SENIOR: Identificamos si el correo que entra eres TÚ
     const isAdmin = user.email === "jjhor24@gmail.com";
-
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
 
     if (!snap.exists()) {
       await setDoc(ref, {
         email: user.email,
-        // Si eres admin, te pone tu nombre real, si no, "Usuario FF"
         displayName: isAdmin
           ? "Yammir (Admin)"
           : customName || user.displayName || "Usuario FF",
-        // Si eres admin, naces con VIP activado (true), si no, desactivado (false)
         activo: isAdmin ? true : false,
         rol: isAdmin ? "admin" : "user",
         createdAt: serverTimestamp(),
@@ -148,15 +144,14 @@ export default function LoginPage() {
 
   const formVariants = {
     hidden: (direction: number) => ({
-      x: direction > 0 ? 20 : -20, // Distancia reducida para más fluidez
+      x: direction > 0 ? 20 : -20,
       opacity: 0,
-      // ❌ filter: "blur(4px)" <- ELIMINADO para no quemar la GPU
     }),
     visible: {
       x: 0,
       opacity: 1,
       transition: {
-        duration: 0.35, // Ligeramente más rápido
+        duration: 0.35,
         ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       },
     },
@@ -173,8 +168,8 @@ export default function LoginPage() {
   const animationDirection = activeTab === "login" ? -1 : 1;
 
   return (
-    // 👈 AQUÍ ESTÁ EL DIV QUE ABRE
-    <div className="relative flex min-h-screen w-full items-center justify-center px-4 py-10 font-body">
+    // 👇 FIX 1: 100dvh en contenedor principal
+    <div className="relative flex min-h-[100dvh] w-full items-center justify-center px-4 py-10 font-body">
       <AnimatePresence>
         {showForgotModal && (
           <motion.div
@@ -206,12 +201,13 @@ export default function LoginPage() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 grayscale">
                       📧
                     </span>
+                    {/* 👇 FIX 2: text-base sm:text-[14px] */}
                     <input
                       type="email"
                       required
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/80 py-3.5 pl-12 pr-4 text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#141728]/80 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
                       placeholder="tu@email.com"
                     />
                   </div>
@@ -338,12 +334,13 @@ export default function LoginPage() {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
                         👤
                       </span>
+                      {/* 👇 FIX 3: text-base sm:text-[14px] */}
                       <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
                         placeholder="Tu nombre"
                       />
                     </div>
@@ -358,12 +355,13 @@ export default function LoginPage() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
                       📧
                     </span>
+                    {/* 👇 FIX 4: text-base sm:text-[14px] */}
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
                       placeholder="tu@email.com"
                     />
                   </div>
@@ -391,12 +389,13 @@ export default function LoginPage() {
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
                       🔒
                     </span>
+                    {/* 👇 FIX 5: text-base sm:text-[14px] */}
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
                       placeholder="••••••••"
                     />
                     <button
@@ -418,12 +417,13 @@ export default function LoginPage() {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
                         🔒
                       </span>
+                      {/* 👇 FIX 6: text-base sm:text-[14px] */}
                       <input
                         type={showPassword ? "text" : "password"}
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
                         placeholder="Repite tu contraseña"
                       />
                     </div>
@@ -480,6 +480,6 @@ export default function LoginPage() {
           </button>
         </GlassCard>
       </motion.div>
-    </div> // 👈 ESTE ES EL CIERRE CORRECTO
+    </div>
   );
 }

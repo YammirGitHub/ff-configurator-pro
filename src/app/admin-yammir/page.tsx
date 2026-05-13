@@ -21,27 +21,29 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [actionId, setActionId] = useState<string | null>(null);
   const [allCodes, setAllCodes] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [actionId, setActionId] = useState<string | null>(null);
+
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user || user.email !== ADMIN_EMAIL) {
         router.push("/");
       } else {
         setIsAuthorized(true);
-        fetchData();
+        await fetchData();
+        setIsAuthLoading(false);
       }
     });
     return () => unsubscribe();
   }, [router]);
 
   const fetchData = async () => {
-    setLoading(true);
+    setIsDataLoading(true);
     try {
-      // 1. Traer Usuarios
       const snapUsers = await getDocs(collection(db, "users"));
       const listUsers = snapUsers.docs.map((d) => ({ id: d.id, ...d.data() }));
       listUsers.sort(
@@ -50,10 +52,8 @@ export default function AdminDashboard() {
       );
       setUsers(listUsers);
 
-      // 2. Traer Códigos VIP (NUEVO)
       const snapCodes = await getDocs(collection(db, "vip_codes"));
       const listCodes = snapCodes.docs.map((d) => ({ id: d.id, ...d.data() }));
-      // Ordenar códigos del más nuevo al más viejo
       listCodes.sort(
         (a: any, b: any) =>
           new Date(b.creadoEl).getTime() - new Date(a.creadoEl).getTime(),
@@ -62,9 +62,25 @@ export default function AdminDashboard() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      setIsDataLoading(false);
     }
   };
+
+  // 👇 FIX 1: 100dvh en pantalla de carga
+  if (isAuthLoading) {
+    return (
+      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#07080f]">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <span className="text-4xl opacity-50">👑</span>
+          <p className="font-display text-[10px] font-bold uppercase tracking-[0.3em] text-[#ffd700]">
+            Verificando Acceso Maestro...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) return null;
 
   const toggleVip = async (userId: string, currentStatus: boolean) => {
     setActionId(userId);
@@ -103,6 +119,7 @@ export default function AdminDashboard() {
       setActionId(null);
     }
   };
+
   const generateCodes = async (cantidad: number) => {
     for (let i = 0; i < cantidad; i++) {
       const code = `VIP-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -112,7 +129,7 @@ export default function AdminDashboard() {
       });
     }
     alert(`Éxito: ${cantidad} códigos generados.`);
-    fetchData(); // 👈 LÓGICA SENIOR: Recargar todo desde la base de datos real
+    fetchData();
   };
 
   const filteredUsers = users.filter((u) => {
@@ -123,15 +140,12 @@ export default function AdminDashboard() {
 
   const totalVips = users.filter((u) => u.activo).length;
 
-  if (!isAuthorized) return <div className="min-h-screen bg-[#07080f]" />;
-
   return (
-    // 👇 SOLUCIÓN DE ESPACIADO: pt-28 lg:pt-36 para alinear perfecto con el Navbar
-    <div className="relative flex min-h-screen w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
+    // 👇 FIX 2: 100dvh en contenedor principal
+    <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
       <Particles />
 
       <div className="relative z-10 w-full max-w-[1200px] space-y-6 lg:space-y-8">
-        {/* 👇 TÍTULO RECUPERADO: Le da jerarquía y empuja el contenido hacia abajo */}
         <div className="flex flex-col items-center md:items-start md:flex-row md:justify-between md:mb-2">
           <div>
             <h1 className="font-display text-2xl lg:text-3xl font-black text-white flex items-center gap-2">
@@ -177,12 +191,13 @@ export default function AdminDashboard() {
 
         {/* BUSCADOR */}
         <div className="relative">
+          {/* 👇 FIX 3: text-base en el buscador */}
           <input
             type="text"
             placeholder="Buscar por correo electrónico..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#141728]/80 border border-white/10 rounded-2xl py-4 px-6 text-white text-sm lg:text-base outline-none focus:border-[#ff6b35]/50 transition-all placeholder:text-zinc-500"
+            className="w-full bg-[#141728]/80 border border-white/10 rounded-2xl py-4 px-6 text-white text-base outline-none focus:border-[#ff6b35]/50 transition-all placeholder:text-zinc-500"
           />
           <span className="absolute right-6 top-1/2 -translate-y-1/2 opacity-30 text-lg">
             🔍
@@ -207,7 +222,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
-                {loading ? (
+                {isDataLoading ? (
                   <tr>
                     <td
                       colSpan={3}
@@ -255,7 +270,6 @@ export default function AdminDashboard() {
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            {/* 👇 BOTÓN VIP: Cambiamos px-4 por w-[100px] para fijar el ancho */}
                             <button
                               disabled={actionId === u.id}
                               onClick={() => toggleVip(u.id, u.activo)}
@@ -263,8 +277,6 @@ export default function AdminDashboard() {
                             >
                               {u.activo ? "Quitar VIP" : "Hacer VIP"}
                             </button>
-
-                            {/* 👇 BOTÓN ELIMINAR: También le ponemos w-[100px] para que sean gemelos */}
                             <button
                               disabled={actionId === u.id}
                               onClick={() => deleteUser(u.id)}
@@ -283,8 +295,7 @@ export default function AdminDashboard() {
           </div>
         </GlassCard>
 
-        {/* LISTA DE CÓDIGOS RECIÉN GENERADOS */}
-        {/* SECCIÓN DE VOUCHERS (LEYENDO DE FIREBASE) */}
+        {/* SECCIÓN DE VOUCHERS */}
         <GlassCard className="p-6 lg:p-8 border-[#ffd700]/20">
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-xs lg:text-sm font-black text-[#ffd700] uppercase tracking-widest flex items-center gap-2">
@@ -299,11 +310,7 @@ export default function AdminDashboard() {
             {allCodes.map((codeObj) => (
               <div
                 key={codeObj.id}
-                className={`flex items-center justify-between p-3 lg:p-4 rounded-xl border shadow-inner transition-all ${
-                  codeObj.usado
-                    ? "bg-red-500/5 border-red-500/10 opacity-50 grayscale"
-                    : "bg-[#141728] border-white/5"
-                }`}
+                className={`flex items-center justify-between p-3 lg:p-4 rounded-xl border shadow-inner transition-all ${codeObj.usado ? "bg-red-500/5 border-red-500/10 opacity-50 grayscale" : "bg-[#141728] border-white/5"}`}
               >
                 <div className="flex flex-col">
                   <span
@@ -315,7 +322,6 @@ export default function AdminDashboard() {
                     {codeObj.usado ? "🔴 Ya Canjeado" : "🟢 Listo para vender"}
                   </span>
                 </div>
-
                 {!codeObj.usado && (
                   <button
                     onClick={() => {

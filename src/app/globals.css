@@ -3,9 +3,8 @@
 body {
   background-color: #07080f;
   color: #ffffff;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   font-family: 'Rajdhani', sans-serif;
+
   /* MAGIA PWA: Elimina el rebote al hacer scroll en iOS y Android */
   overscroll-behavior-y: none;
   /* MAGIA PWA: Evita que el usuario seleccione textos por accidente al tocar la pantalla */
@@ -21,8 +20,24 @@ body {
   user-select: text;
 }
 
-::-webkit-scrollbar {
-  display: none;
+/* ====================================================
+   🔥 EL ASESINO DE SCROLLBARS (NIVEL SENIOR)
+   Garantiza que el scroll funcione con el dedo/mouse,
+   pero la barra visual JAMÁS ocupa espacio en pantalla.
+==================================================== */
+* {
+  scrollbar-width: none !important;
+  /* Firefox */
+  -ms-overflow-style: none !important;
+  /* IE y Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  /* Chrome, Safari, iOS, Android */
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
 }
 
 @keyframes shimmer {

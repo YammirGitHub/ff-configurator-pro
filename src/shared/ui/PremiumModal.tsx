@@ -65,18 +65,15 @@ export function PremiumModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          // z-[200] y padding reducido para móviles
           className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6 bg-[#07080f]/95 backdrop-blur-sm font-body"
         >
           <motion.div
             initial={{ scale: 0.95, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 20 }}
-            // max-h-[95vh] es la clave para que no se salga de la pantalla del iPhone
             className="w-full max-w-lg max-h-[95vh] overflow-hidden"
           >
             <GlassCard className="relative flex flex-col h-full border-[#ffd700]/20 shadow-[0_0_60px_rgba(255,107,53,0.1)] p-0">
-              {/* Botón de cerrar flotante para no estorbar */}
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 z-50 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md"
@@ -84,9 +81,7 @@ export function PremiumModal({
                 ✕
               </button>
 
-              {/* CONTENEDOR CON SCROLL INTERNO (Para que quepa en cualquier iPhone) */}
               <div className="flex-1 overflow-y-auto p-5 sm:p-8 custom-scrollbar">
-                {/* CABECERA OPTIMIZADA */}
                 <div className="text-center mb-6">
                   <span className="inline-block px-3 py-1 rounded-full border border-[#ffd700]/10 bg-[#ffd700]/5 text-[9px] font-black uppercase tracking-widest text-[#ffd700] mb-2">
                     💎 ACCESO VIP ILIMITADO
@@ -99,10 +94,8 @@ export function PremiumModal({
                   </h2>
                 </div>
 
-                {/* ZONA DE PAGO COMPACTA */}
                 <div className="bg-[#141728]/80 rounded-2xl border border-white/5 p-4 sm:p-6 mb-6">
                   <div className="flex flex-col items-center gap-4 text-center">
-                    {/* QR - Tamaño responsivo */}
                     <div className="relative w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] rounded-xl border border-white/10 bg-white p-1 shadow-xl">
                       <Image
                         src="/yape-qr.jpg"
@@ -162,18 +155,18 @@ export function PremiumModal({
                   </a>
                 </div>
 
-                {/* CANJE SIMPLIFICADO */}
                 <div className="border-t border-white/10 pt-5">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[#ffd36b] mb-3 text-center">
                     🎟️ ¿Ya tienes tu código VIP?
                   </p>
                   <div className="flex gap-2">
+                    {/* 👇 AQUÍ EL FIX DEL INPUT PARA EVITAR ZOOM EN IOS */}
                     <input
                       type="text"
                       placeholder="VIP-XXXX-XXXX"
                       value={code}
                       onChange={(e) => setCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white outline-none focus:border-[#ffd700]/50 transition-all"
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-base sm:text-xs font-mono text-white outline-none focus:border-[#ffd700]/50 transition-all"
                     />
                     <button
                       onClick={handleRedeem}

@@ -66,9 +66,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="dark">
-      {/* El fondo bg-[#07080f] evita el "flashazo" blanco al cargar en Safari */}
+      {/* 👇 FIX 1: 100dvh en el body universal */}
       <body
-        className={`${inter.variable} min-h-screen text-zinc-50 antialiased bg-[#07080f]`}
+        className={`${inter.variable} min-h-[100dvh] text-zinc-50 antialiased bg-[#07080f]`}
       >
         <div
           aria-hidden="true"

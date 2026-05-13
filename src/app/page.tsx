@@ -4,7 +4,7 @@ import { useDevice } from "@/entities/device/DeviceContext";
 import { DeviceBrand } from "@/entities/device/types";
 import { computeProConfig } from "@/features/calculator/math";
 import { auth, db } from "@/shared/config/firebase";
-import { PremiumModal } from "@/shared/ui/PremiumModal"; // 👈 IMPORTAMOS EL MODAL
+import { PremiumModal } from "@/shared/ui/PremiumModal";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -128,16 +128,16 @@ export default function Home() {
   const [scale, setScale] = useState(1);
   const router = useRouter();
 
-  // 🚀 ESTADOS VIP Y NUBE
   const [savedConfigs, setSavedConfigs] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
   const [showVault, setShowVault] = useState(false);
 
-  // 💎 ESTADOS DEL SISTEMA DE PAGOS
   const [isVip, setIsVip] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -150,17 +150,18 @@ export default function Home() {
           const docSnap = await getDoc(userRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            // LÓGICA SENIOR: Validamos si el usuario pagó
             setIsVip(data.activo === true);
             if (data.savedConfigs) {
               setSavedConfigs(data.savedConfigs);
             }
           }
         } catch (e) {
-          console.error("Error cargando datos del usuario", e);
+          console.error("Error cargando datos", e);
         }
+        setIsAuthLoading(false);
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
@@ -218,7 +219,6 @@ export default function Home() {
   };
 
   const handleGenerateClick = () => {
-    // 💎 EL MURO DE PAGO: Si no es VIP, le abrimos el modal de Yape
     if (!isVip) {
       setShowPremiumModal(true);
       return;
@@ -330,16 +330,29 @@ export default function Home() {
       ]
     : [];
 
+  // 👇 FIX SENIOR: Cambio de min-h-screen a min-h-[100dvh] en la pantalla de carga
+  if (isAuthLoading) {
+    return (
+      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#07080f]">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <span className="text-4xl opacity-50">🎯</span>
+          <p className="font-display text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff6b35]">
+            Sincronizando Base de Datos...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
-      {/* 💎 EL MODAL DE PAGOS Y CANJE (Siempre oculto hasta que haga clic sin ser VIP) */}
+    // 👇 FIX SENIOR: Cambio de min-h-screen a min-h-[100dvh] en el contenedor principal
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
         userEmail={userEmail}
       />
 
-      {/* 🔮 MODAL DE LA BÓVEDA VIP */}
       <AnimatePresence>
         {showVault && (
           <motion.div
@@ -420,7 +433,6 @@ export default function Home() {
       </AnimatePresence>
 
       <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-8">
-        {/* PANEL IZQUIERDO — CONTROLES */}
         <GlassCard className="flex flex-col gap-6 lg:gap-8">
           <section className="space-y-4">
             <StepHeading step={1} label="Selecciona tu Marca" />
@@ -586,7 +598,6 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={handleGenerateClick}
-                // 💎 UI SENIOR: El botón cambia de color y texto dependiendo si eres VIP o no
                 className={`w-full overflow-hidden rounded-[16px] py-5 lg:py-6 font-display text-sm lg:text-base font-bold uppercase tracking-[0.2em] shadow-[0_8px_24px_rgba(255,107,53,0.3)] active:scale-[0.98] transition-all duration-300 ${isVip ? "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white" : "bg-gradient-to-r from-[#ffd700] to-[#f7931e] text-[#4a3000]"}`}
               >
                 <span className="relative flex items-center justify-center gap-2">
@@ -599,7 +610,6 @@ export default function Home() {
           </AnimatePresence>
         </GlassCard>
 
-        {/* PANEL DERECHO — RESULTADOS INDEPENDIENTES */}
         <div className="w-full">
           <AnimatePresence mode="wait">
             {result && currentSens ? (
