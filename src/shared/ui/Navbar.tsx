@@ -17,13 +17,11 @@ export function Navbar() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // Solo tú tienes el privilegio de la tuerca
       setIsAdmin(user?.email === ADMIN_EMAIL);
     });
     return () => unsubscribe();
   }, []);
 
-  // Cerrar menú al tocar fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -39,9 +37,9 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 z-50 flex w-full justify-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 pointer-events-none">
       <div className="pointer-events-auto relative flex items-center gap-3">
-        {/* 1. BRAND PILL (SIMÉTRICA) */}
+        {/* 1. BRAND PILL */}
         <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <h1 className="font-display text-xl lg:text-2xl font-black tracking-tighter leading-none">
             <span className="bg-gradient-to-r from-[#ff6b35] via-[#f7931e] to-[#ffd700] bg-clip-text text-transparent drop-shadow-md">
               EA YAMMIR FF
@@ -59,7 +57,7 @@ export function Navbar() {
         {/* 2. ZONA DE ACCIÓN DINÁMICA */}
         <div className="relative" ref={menuRef}>
           {isAdmin ? (
-            /* --- VISTA ADMIN: LA TUERCA MÁGICA --- */
+            /* --- VISTA ADMIN: MENÚ CON TUERCA --- */
             <>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -124,10 +122,23 @@ export function Navbar() {
                           setMenuOpen(false);
                           signOut(auth);
                         }}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10"
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all"
                       >
-                        <span className="text-lg opacity-80">🚪</span> Cerrar
-                        Sesión
+                        {/* 👇 ICONO IGUAL AL DEL USUARIO */}
+                        <svg
+                          className="w-5 h-5 opacity-80"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.5"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          />
+                        </svg>
+                        Cerrar Sesión
                       </button>
                     </div>
                   </motion.div>
@@ -135,7 +146,7 @@ export function Navbar() {
               </AnimatePresence>
             </>
           ) : (
-            /* --- VISTA CLIENTE: SOLO BOTÓN DE SALIR --- */
+            /* --- VISTA CLIENTE: BOTÓN DE SALIR DIRECTO --- */
             <button
               onClick={() => signOut(auth)}
               className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
