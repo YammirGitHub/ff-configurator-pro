@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "EA Yammir FF",
     images: [
       {
-        // 👇 FIX: Ruta ABSOLUTA. WhatsApp necesita el link completo sí o sí.
+        // 👇 FIX CRÍTICO: Usamos tu .png PERO con la ruta absoluta completa
         url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png",
         width: 1200,
         height: 630,
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
-    // 👇 FIX: Ruta ABSOLUTA también aquí
+    // 👇 FIX: También aquí .png y ruta completa
     images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png"],
   },
   // 📱 Iconos
