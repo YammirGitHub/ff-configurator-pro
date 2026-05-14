@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "Yammir Sens",
   },
 
-  // 🌐 Configuración Open Graph
+  /// 🌐 Configuración Open Graph
   openGraph: {
     title: "EA YAMMIR FF - CONFIGURADOR PRO",
     description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "EA Yammir FF",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.png", // 👈 PNG
         width: 1200,
         height: 630,
         alt: "EA YAMMIR FF Preview",
@@ -45,13 +45,13 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
-    images: ["/og-image.png"],
+    images: ["/og-image.png"], // 👈 PNG
   },
 
   // 📱 Iconos
   icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
+    icon: "/icon.png", // 👈 PNG
+    apple: "/icon.png", // 👈 PNG
   },
 };
 
