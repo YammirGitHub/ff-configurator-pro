@@ -42,13 +42,16 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    // 👇 FIX: Quitamos el "async" de aquí
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user || user.email !== ADMIN_EMAIL) {
         router.push("/");
       } else {
         setIsAuthorized(true);
-        await fetchData();
+        // 👇 MAGIA UX: Apagamos la pantalla de "Verificando" al instante
         setIsAuthLoading(false);
+        // 👇 Los datos se cargan de fondo. La tabla mostrará "Cargando base de datos..."
+        fetchData();
       }
     });
     return () => unsubscribe();
