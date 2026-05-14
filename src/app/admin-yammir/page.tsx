@@ -8,7 +8,10 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query, // 👈 EL IMPORT QUE FALTABA
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -29,7 +32,6 @@ export default function AdminDashboard() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-  // Sistema de Notificaciones y Modales
   const [toast, setToast] = useState<{
     msg: string;
     type: "success" | "error";
@@ -41,46 +43,49 @@ export default function AdminDashboard() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // 👇 UN SOLO USEEFFECT, LIMPIO Y VELOZ
   useEffect(() => {
-    // 👇 FIX: Quitamos el "async" de aquí
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let unsubscribeUsers: () => void;
+    let unsubscribeCodes: () => void;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (!user || user.email !== ADMIN_EMAIL) {
         router.push("/");
       } else {
         setIsAuthorized(true);
-        // 👇 MAGIA UX: Apagamos la pantalla de "Verificando" al instante
         setIsAuthLoading(false);
-        // 👇 Los datos se cargan de fondo. La tabla mostrará "Cargando base de datos..."
-        fetchData();
+
+        // 🚀 OPTIMIZACIÓN: Solo los 200 más recientes, procesado en el servidor
+        const usersQuery = query(
+          collection(db, "users"),
+          orderBy("createdAt", "desc"),
+          limit(200),
+        );
+        unsubscribeUsers = onSnapshot(usersQuery, (snap) => {
+          const listUsers = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setUsers(listUsers);
+          setIsDataLoading(false);
+        });
+
+        // 🚀 OPTIMIZACIÓN: Códigos en tiempo real
+        const codesQuery = query(
+          collection(db, "vip_codes"),
+          orderBy("creadoEl", "desc"),
+          limit(200),
+        );
+        unsubscribeCodes = onSnapshot(codesQuery, (snap) => {
+          const listCodes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setAllCodes(listCodes);
+        });
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeUsers) unsubscribeUsers();
+      if (unsubscribeCodes) unsubscribeCodes();
+    };
   }, [router]);
-
-  const fetchData = async () => {
-    setIsDataLoading(true);
-    try {
-      const snapUsers = await getDocs(collection(db, "users"));
-      const listUsers = snapUsers.docs.map((d) => ({ id: d.id, ...d.data() }));
-      listUsers.sort(
-        (a: any, b: any) =>
-          (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0),
-      );
-      setUsers(listUsers);
-
-      const snapCodes = await getDocs(collection(db, "vip_codes"));
-      const listCodes = snapCodes.docs.map((d) => ({ id: d.id, ...d.data() }));
-      listCodes.sort(
-        (a: any, b: any) =>
-          new Date(b.creadoEl).getTime() - new Date(a.creadoEl).getTime(),
-      );
-      setAllCodes(listCodes);
-    } catch (e) {
-      showToast("Error al cargar la base de datos", "error");
-    } finally {
-      setIsDataLoading(false);
-    }
-  };
 
   if (isAuthLoading) {
     return (
@@ -105,11 +110,6 @@ export default function AdminDashboard() {
         activo: !currentStatus,
         rol: !currentStatus ? "vip" : "user",
       });
-      setUsers(
-        users.map((u) =>
-          u.id === userId ? { ...u, activo: !currentStatus } : u,
-        ),
-      );
       showToast(
         currentStatus ? "VIP revocado" : "VIP otorgado con éxito",
         "success",
@@ -126,7 +126,6 @@ export default function AdminDashboard() {
     setActionId(userToDelete);
     try {
       await deleteDoc(doc(db, "users", userToDelete));
-      setUsers(users.filter((u) => u.id !== userToDelete));
       showToast("Usuario eliminado permanentemente", "success");
     } catch (e) {
       showToast("Error al eliminar usuario", "error");
@@ -145,7 +144,6 @@ export default function AdminDashboard() {
       });
     }
     showToast(`Éxito: ${cantidad} códigos generados.`, "success");
-    fetchData();
   };
 
   const filteredUsers = users.filter((u) => {
@@ -156,19 +154,16 @@ export default function AdminDashboard() {
 
   const totalVips = users.filter((u) => u.activo).length;
 
-  // 👇 FIX: Aumentamos pt-36 y lg:pt-40 para despejar el Navbar
   return (
     <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-36 pb-12 sm:px-8 lg:px-12 lg:pt-40 font-body bg-[#07080f]">
       <Particles />
 
-      {/* 👇 TOAST NOTIFICATION SENIOR */}
       <AnimatePresence>
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            // 👇 FIX: Cambiamos top-6 por top-32 para que baje y no tape el Navbar
             className="fixed top-32 left-0 right-0 z-[300] mx-auto w-max max-w-[90%] px-4"
           >
             <div
@@ -205,8 +200,7 @@ export default function AdminDashboard() {
                   ¿Eliminar Usuario?
                 </h3>
                 <p className="text-zinc-400 text-xs font-medium mb-6">
-                  Esta acción borrará al usuario de la base de datos
-                  permanentemente. No se puede deshacer.
+                  Esta acción borrará al usuario permanentemente.
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -240,8 +234,8 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* 👇 FIX: Grid Responsivo para los botones superiores */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6">
+        {/* 👇 FIX: Ajustado a 3 columnas sin el botón de actualizar */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
           <GlassCard className="p-4 text-center flex flex-col justify-center">
             <p className="text-[10px] lg:text-[11px] font-bold text-[#8b8fa5] uppercase tracking-widest">
               Total Usuarios
@@ -260,15 +254,9 @@ export default function AdminDashboard() {
           </GlassCard>
           <button
             onClick={() => generateCodes(5)}
-            className="col-span-1 md:col-span-1 rounded-[20px] bg-white/5 border border-white/10 text-[10px] sm:text-[11px] lg:text-xs font-bold text-white uppercase hover:bg-white/10 transition-all active:scale-95 py-3"
+            className="col-span-2 md:col-span-1 rounded-[20px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-[10px] sm:text-[11px] lg:text-xs font-bold text-white uppercase shadow-[0_4px_15px_rgba(255,107,53,0.3)] hover:brightness-110 transition-all active:scale-95 py-3"
           >
             Generar 5 Códigos
-          </button>
-          <button
-            onClick={fetchData}
-            className="col-span-1 md:col-span-1 rounded-[20px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-[10px] sm:text-[11px] lg:text-xs font-bold text-white uppercase shadow-[0_4px_15px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95 transition-all py-3"
-          >
-            Actualizar Lista
           </button>
         </div>
 
@@ -285,12 +273,11 @@ export default function AdminDashboard() {
           </span>
         </div>
 
-        {/* 👇 FIX: Lista Responsiva en Flexbox (Cero Scroll Horizontal) */}
         <GlassCard className="overflow-hidden p-0">
           <div className="flex flex-col divide-y divide-white/[0.03]">
             {isDataLoading ? (
               <div className="p-10 text-center text-[13px] font-semibold tracking-widest text-zinc-500 uppercase animate-pulse">
-                Cargando base de datos...
+                Sincronizando Caché Local...
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="p-10 text-center text-[13px] font-semibold text-zinc-500">
@@ -302,7 +289,6 @@ export default function AdminDashboard() {
                   key={u.id}
                   className="flex flex-row items-center justify-between p-4 sm:p-5 hover:bg-white/[0.02] transition-colors gap-4"
                 >
-                  {/* DATOS DEL USUARIO (Izquierda) */}
                   <div className="flex flex-col flex-1 min-w-0">
                     <p className="text-sm lg:text-base font-bold text-white leading-tight truncate">
                       {u.displayName || "Sin nombre"}
@@ -311,10 +297,7 @@ export default function AdminDashboard() {
                       {u.email}
                     </p>
                   </div>
-
-                  {/* ESTADO Y ACCIONES (Alineados estrictamente a la derecha) */}
                   <div className="flex flex-row items-center justify-end gap-2 sm:gap-3 flex-shrink-0">
-                    {/* COLUMNA: ESTADO (Ancho fijo) */}
                     <div className="w-[70px] sm:w-[90px]">
                       <span
                         className={`flex w-full items-center justify-center px-1 py-2 sm:py-2.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${u.activo ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 shadow-[0_0_10px_rgba(37,211,102,0.1)]" : "bg-white/5 text-zinc-400 border border-white/10"}`}
@@ -322,8 +305,6 @@ export default function AdminDashboard() {
                         {u.activo ? "💎 VIP" : "Básico"}
                       </span>
                     </div>
-
-                    {/* COLUMNA: ACCIONES (Ancho fijo) */}
                     <div className="w-[140px] sm:w-[180px]">
                       {u.email === ADMIN_EMAIL ? (
                         <span className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/10 px-2 py-2 sm:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#ffd700]">
@@ -355,7 +336,6 @@ export default function AdminDashboard() {
           </div>
         </GlassCard>
 
-        {/* SECCIÓN DE VOUCHERS */}
         <GlassCard className="p-6 lg:p-8 border-[#ffd700]/20">
           <div className="flex justify-between items-center mb-5">
             <h3 className="text-xs lg:text-sm font-black text-[#ffd700] uppercase tracking-widest flex items-center gap-2">
@@ -365,7 +345,6 @@ export default function AdminDashboard() {
               {allCodes.filter((c) => !c.usado).length} Disponibles
             </span>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {allCodes.map((codeObj) => (
               <div
