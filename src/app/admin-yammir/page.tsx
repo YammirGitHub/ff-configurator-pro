@@ -11,7 +11,7 @@ import {
   limit,
   onSnapshot,
   orderBy,
-  query, // 👈 EL IMPORT QUE FALTABA
+  query,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
