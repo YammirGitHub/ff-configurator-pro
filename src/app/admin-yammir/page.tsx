@@ -156,8 +156,9 @@ export default function AdminDashboard() {
 
   const totalVips = users.filter((u) => u.activo).length;
 
+  // 👇 FIX: Aumentamos pt-36 y lg:pt-40 para despejar el Navbar
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
+    <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-36 pb-12 sm:px-8 lg:px-12 lg:pt-40 font-body bg-[#07080f]">
       <Particles />
 
       {/* 👇 TOAST NOTIFICATION SENIOR */}
@@ -299,46 +300,54 @@ export default function AdminDashboard() {
               filteredUsers.map((u) => (
                 <div
                   key={u.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 hover:bg-white/[0.02] transition-colors gap-4"
+                  className="flex flex-row items-center justify-between p-4 sm:p-5 hover:bg-white/[0.02] transition-colors gap-4"
                 >
-                  <div className="flex flex-col">
-                    <p className="text-sm lg:text-base font-bold text-white leading-tight">
+                  {/* DATOS DEL USUARIO (Izquierda) */}
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <p className="text-sm lg:text-base font-bold text-white leading-tight truncate">
                       {u.displayName || "Sin nombre"}
                     </p>
-                    <p className="mt-0.5 text-[11px] lg:text-xs text-zinc-400 font-medium tracking-wide">
+                    <p className="mt-0.5 text-[11px] lg:text-xs text-zinc-400 font-medium tracking-wide truncate">
                       {u.email}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-                    <span
-                      className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[9px] lg:text-[10px] font-black uppercase tracking-wider ${u.activo ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 shadow-[0_0_10px_rgba(37,211,102,0.1)]" : "bg-white/5 text-zinc-400 border border-white/10"}`}
-                    >
-                      {u.activo ? "💎 VIP Activo" : "Básico"}
-                    </span>
-
-                    {u.email === ADMIN_EMAIL ? (
-                      <span className="flex items-center justify-center gap-1.5 rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-[#ffd700]">
-                        👑 Intocable
+                  {/* ESTADO Y ACCIONES (Alineados estrictamente a la derecha) */}
+                  <div className="flex flex-row items-center justify-end gap-2 sm:gap-3 flex-shrink-0">
+                    {/* COLUMNA: ESTADO (Ancho fijo) */}
+                    <div className="w-[70px] sm:w-[90px]">
+                      <span
+                        className={`flex w-full items-center justify-center px-1 py-2 sm:py-2.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${u.activo ? "bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 shadow-[0_0_10px_rgba(37,211,102,0.1)]" : "bg-white/5 text-zinc-400 border border-white/10"}`}
+                      >
+                        {u.activo ? "💎 VIP" : "Básico"}
                       </span>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          disabled={actionId === u.id}
-                          onClick={() => toggleVip(u.id, u.activo)}
-                          className={`px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${u.activo ? "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white" : "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white shadow-[0_4px_12px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95"}`}
-                        >
-                          {u.activo ? "Quitar" : "Dar VIP"}
-                        </button>
-                        <button
-                          disabled={actionId === u.id}
-                          onClick={() => setUserToDelete(u.id)}
-                          className="px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all active:scale-95"
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    )}
+                    </div>
+
+                    {/* COLUMNA: ACCIONES (Ancho fijo) */}
+                    <div className="w-[140px] sm:w-[180px]">
+                      {u.email === ADMIN_EMAIL ? (
+                        <span className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#ffd700]/30 bg-[#ffd700]/10 px-2 py-2 sm:py-2.5 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#ffd700]">
+                          👑 Intocable
+                        </span>
+                      ) : (
+                        <div className="flex w-full gap-1.5 sm:gap-2">
+                          <button
+                            disabled={actionId === u.id}
+                            onClick={() => toggleVip(u.id, u.activo)}
+                            className={`flex-1 py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all ${u.activo ? "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white" : "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white shadow-[0_4px_12px_rgba(255,107,53,0.3)] hover:brightness-110 active:scale-95"}`}
+                          >
+                            {u.activo ? "Quitar" : "VIP"}
+                          </button>
+                          <button
+                            disabled={actionId === u.id}
+                            onClick={() => setUserToDelete(u.id)}
+                            className="flex-1 py-2 sm:py-2.5 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))

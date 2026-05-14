@@ -7,7 +7,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -112,9 +112,8 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      await ensureUserDoc(result.user);
-      router.push("/");
+      // 👇 MAGIA PWA: Esto entra y sale de la app nativa sin romper iOS
+      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
       showMsg("error", "Error al iniciar sesión con Google.");
       setIsLoading(false);
