@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     title: "Yammir Sens",
   },
 
-  /// 🌐 Configuración Open Graph
+  // 🌐 Configuración Open Graph
   openGraph: {
     title: "EA YAMMIR FF - CONFIGURADOR PRO",
     description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
@@ -31,7 +31,8 @@ export const metadata: Metadata = {
     siteName: "EA Yammir FF",
     images: [
       {
-        url: "/og-image.png",
+        // 👇 FIX: Ruta ABSOLUTA. WhatsApp necesita el link completo sí o sí.
+        url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png",
         width: 1200,
         height: 630,
         alt: "EA YAMMIR FF Preview",
@@ -45,9 +46,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
-    images: ["/og-image.png"], // 👈 PNG
+    // 👇 FIX: Ruta ABSOLUTA también aquí
+    images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png"],
   },
-
   // 📱 Iconos
   icons: {
     icon: "/icon.png", // 👈 PNG
