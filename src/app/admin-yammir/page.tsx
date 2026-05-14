@@ -160,13 +160,15 @@ export default function AdminDashboard() {
     <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-28 pb-12 sm:px-8 lg:px-12 lg:pt-36 font-body bg-[#07080f]">
       <Particles />
 
+      {/* 👇 TOAST NOTIFICATION SENIOR */}
       <AnimatePresence>
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-6 left-0 right-0 z-[300] mx-auto w-max max-w-[90%] px-4"
+            // 👇 FIX: Cambiamos top-6 por top-32 para que baje y no tape el Navbar
+            className="fixed top-32 left-0 right-0 z-[300] mx-auto w-max max-w-[90%] px-4"
           >
             <div
               className={`flex items-center gap-3 rounded-full px-5 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] backdrop-blur-xl border ${toast.type === "success" ? "bg-[#25D366]/10 border-[#25D366]/30 text-[#25D366]" : "bg-red-500/10 border-red-500/30 text-red-400"}`}
