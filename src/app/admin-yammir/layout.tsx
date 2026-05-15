@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Yammir ADMIN", // 👈 Nombre diferente bajo el icono
+    title: "Yammir ADMIN", // 👈 Nombre diferente bajo el icono.
   },
 
   // 📱 Aquí es donde sucede la magia del cambio de logo
