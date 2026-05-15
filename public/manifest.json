@@ -1,12 +1,11 @@
 {
-  "name": "EA Yammir FF - Sens Pro",
-  "short_name": "Yammir Sens",
-  "description": "Configurador Pro para Free Fire",
+  "name": "EA YAMMIR FF",
+  "short_name": "Yammir FF",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
   "background_color": "#07080f",
   "theme_color": "#07080f",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon.png",

@@ -1,13 +1,19 @@
 @import "tailwindcss";
 
+:root {
+  /* Definimos el área segura del notch/isla dinámica como variable global */
+  --safe-top: env(safe-area-inset-top);
+}
+
 /* ====================================================
    📱 1. CONFIGURACIÓN BASE & BLOQUEO NATIVO (APP SHELL)
    Congela la pantalla física para evitar rebotes de navegador.
-   El scroll real sucederá dentro de un contenedor dedicado.
 ==================================================== */
 html,
 body {
-  background-color: #07080f;
+  background-color: #07080f !important;
+  margin: 0;
+  padding: 0;
   color: #ffffff;
   font-family: 'Rajdhani', sans-serif;
 
@@ -30,9 +36,17 @@ body {
 }
 
 /* ====================================================
-   🔓 2. EXCEPCIONES DE SELECCIÓN
-   Clase utilitaria para textos que el usuario SÍ debe poder copiar
-   (como los resultados de sensibilidad o los códigos VIP).
+   🌌 2. CLASES DE INMERSIÓN PWA (EDGE-TO-EDGE)
+==================================================== */
+.immersive-bg {
+  /* El contenido respeta la cámara, pero el fondo sube hasta arriba */
+  min-height: 100dvh;
+  padding-top: var(--safe-top);
+}
+
+/* ====================================================
+   🔓 3. EXCEPCIONES DE SELECCIÓN
+   Para textos que el usuario SÍ debe poder copiar (códigos VIP).
 ==================================================== */
 .selectable-text {
   -webkit-user-select: text;
@@ -40,9 +54,8 @@ body {
 }
 
 /* ====================================================
-   👻 3. EL ASESINO DE SCROLLBARS (INVISIBLE SCROLL)
-   Permite deslizar la pantalla de forma nativa, pero oculta
-   la barra visual en cualquier navegador o sistema operativo.
+   👻 4. EL ASESINO DE SCROLLBARS (INVISIBLE SCROLL)
+   Deslizamiento suave pero sin barras visuales estorbando.
 ==================================================== */
 * {
   scrollbar-width: none !important;
@@ -60,8 +73,7 @@ body {
 }
 
 /* ====================================================
-   ✨ 4. ANIMACIONES PREMIUM
-   Efectos visuales fluidos para estados de carga o elementos VIP.
+   ✨ 5. ANIMACIONES PREMIUM
 ==================================================== */
 @keyframes shimmer {
   100% {
@@ -74,8 +86,7 @@ body {
 }
 
 /* ====================================================
-   👆 5. OPTIMIZACIÓN DE INTERACCIONES TÁCTILES
-   Garantiza respuestas inmediatas sin el lag de los navegadores.
+   👆 6. OPTIMIZACIÓN DE INTERACCIONES TÁCTILES
 ==================================================== */
 button,
 select,

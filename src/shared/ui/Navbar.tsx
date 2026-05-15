@@ -11,21 +11,36 @@ export function Navbar() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // 👇 FIX PWA: Estado para saber si la app ya cargó en el celular
   const [isMounted, setIsMounted] = useState(false);
+
+  // 👇 NUEVO: Estado para detectar el scroll
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const ADMIN_EMAIL = "jjhor24@gmail.com";
 
   useEffect(() => {
-    // 👇 Confirmamos que ya estamos en el navegador del iPhone
     setIsMounted(true);
-
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAdmin(user?.email === ADMIN_EMAIL);
     });
     return () => unsubscribe();
+  }, []);
+
+  // 👇 NUEVO: Listener de scroll optimizado (usamos la caja nativa)
+  useEffect(() => {
+    const scroller = document.getElementById("native-scroll");
+
+    const handleScroll = () => {
+      // Si el motor de scroll nativo existe, lo leemos a él. Si no, leemos la ventana.
+      const currentScrollY = scroller ? scroller.scrollTop : window.scrollY;
+      setIsScrolled(currentScrollY > 20);
+    };
+
+    const target = scroller || window;
+    target.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => target.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -38,15 +53,22 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 👇 BLINDAJE ABSOLUTO NIVEL SENIOR
-  // 1. Si no ha cargado el cliente, no dibujamos NADA (Evita el pantallazo en iOS)
   if (!isMounted) return null;
-  // 2. Si estamos en la ruta de login, no dibujamos NADA
   if (!pathname || pathname.includes("login")) return null;
 
   return (
-    <nav className="fixed top-0 z-50 flex w-full justify-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 pointer-events-none">
-      <div className="pointer-events-auto relative flex items-center gap-3">
+    <nav
+      className={`fixed top-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none ${
+        isScrolled
+          ? "bg-[#0d0f1a]/80 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] border-b border-white/5"
+          : "bg-transparent"
+      }`}
+      style={{
+        // 👇 MAGIA PWA: Empuja el contenido debajo de la cámara
+        paddingTop: "max(1.5rem, env(safe-area-inset-top))",
+      }}
+    >
+      <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center">
         {/* 1. BRAND PILL */}
         <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -65,9 +87,8 @@ export function Navbar() {
         </div>
 
         {/* 2. ZONA DE ACCIÓN DINÁMICA */}
-        <div className="relative" ref={menuRef}>
+        <div className="absolute right-4" ref={menuRef}>
           {isAdmin ? (
-            /* --- VISTA ADMIN: MENÚ CON TUERCA --- */
             <>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -153,7 +174,6 @@ export function Navbar() {
               </AnimatePresence>
             </>
           ) : (
-            /* --- VISTA CLIENTE: BOTÓN DE SALIR DIRECTO --- */
             <button
               onClick={() => signOut(auth)}
               className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"

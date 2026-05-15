@@ -8,61 +8,34 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+// 1. Configuración de la "Cáscara" de la App (Apple y Manifest)
 export const metadata: Metadata = {
   title: "EA YAMMIR FF - CONFIGURADOR PRO V2.0",
-  description:
-    "💎 Tu Ventaja VIP en Free Fire. Optimización de rendimiento y canje de códigos diarios.",
-
-  // 👇 ESTA ES LA LLAVE MAESTRA QUE LE FALTABA A NEXT.JS PARA IOS
+  description: "💎 Tu Ventaja VIP en Free Fire. Optimización de rendimiento.",
   manifest: "/manifest.json",
-
-  // 🍎 Configuración para que en iPhone se vea como una App Real
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Yammir Sens",
+    statusBarStyle: "black-translucent", // 👈 Permite que el fondo suba detrás de la hora
+    title: "EA Yammir FF",
   },
-
-  // 🌐 Configuración Open Graph
+  icons: { icon: "/icon.png", apple: "/icon.png" },
   openGraph: {
-    title: "EA YAMMIR FF - CONFIGURADOR PRO",
-    description: "💎 Activa tu ventaja VIP. Optimización extrema sin lag.",
-    url: "https://configurador-pro-ea-yammir-ff.netlify.app",
-    siteName: "EA Yammir FF",
     images: [
       {
-        // 👇 FIX CRÍTICO: Usamos tu .jpeg PERO con la ruta absoluta completa
         url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "EA YAMMIR FF Preview",
       },
     ],
-    locale: "es_PE",
-    type: "website",
-  },
-
-  // 🐦 Twitter
-  twitter: {
-    card: "summary_large_image",
-    title: "EA YAMMIR FF PRO",
-    // 👇 FIX: También aquí .jpeg y ruta completa
-    images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg"],
-  },
-  // 📱 Iconos
-  icons: {
-    icon: "/icon.png", // 👈 PNG
-    apple: "/icon.png", // 👈 PNG
   },
 };
 
-// 👇 ELIMINAMOS themeColor POR COMPLETO AQUÍ
+// 2. Configuración física de la pantalla (El "Asesino" de bordes negros)
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover",
+  viewportFit: "cover", // 👈 CRÍTICO: Obliga a la web a usar el área del Notch
+  themeColor: "#07080f", // 👈 Camuflaje para la barra de Android/Chrome
 };
 
 export default function RootLayout({
@@ -70,10 +43,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="dark">
+      {/* El body debe tener el mismo color que la barra para que no haya cortes */}
       <body
         className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased`}
       >
-        {/* El fondo naranja fijo */}
+        {/* Resplandor de fondo inmersivo */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden"
@@ -83,17 +57,14 @@ export default function RootLayout({
 
         <Particles />
 
-        {/* 👇 LA CAJA MÁGICA: Este es tu nuevo motor de scroll nativo */}
         <div
           id="native-scroll"
-          className="absolute inset-0 w-full overflow-y-auto overflow-x-hidden scroll-smooth"
+          className="absolute inset-0 w-full overflow-y-auto overflow-x-hidden"
         >
           <DeviceProvider>
             <Navbar />
             <InstallPWA />
-            <main className="mx-auto w-full max-w-[1400px] min-h-[100dvh]">
-              {children}
-            </main>
+            <main className="mx-auto w-full max-w-[1400px]">{children}</main>
           </DeviceProvider>
         </div>
       </body>
