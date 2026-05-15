@@ -36,7 +36,6 @@ export function Navbar() {
   }, []);
 
   if (!isMounted || !pathname || pathname.includes("login")) return null;
-
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 pointer-events-none bg-transparent"
@@ -44,27 +43,26 @@ export function Navbar() {
         paddingTop: "max(1.2rem, var(--safe-top))",
       }}
     >
-      {/* Contenedor Flex: Permite al centro respirar libremente */}
-      <div className="pointer-events-auto relative flex items-center justify-center w-full max-w-[1400px] mx-auto px-2">
-        {/* LOGOTIPO CENTRAL: Con "whitespace-nowrap" para que jamás se corte ni se apile */}
-        <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 sm:px-10 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
+      <div className="pointer-events-auto relative flex items-center justify-center w-full max-w-[1400px] mx-auto">
+        {/* 👇 CORRECCIÓN 1: Pastilla central más compacta en móviles (px-5 py-2.5) y texto (text-base) */}
+        <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-5 py-2.5 sm:px-10 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <h1 className="font-display text-lg sm:text-xl lg:text-2xl font-black tracking-tighter leading-none whitespace-nowrap">
+          <h1 className="font-display text-base sm:text-xl lg:text-2xl font-black tracking-tighter leading-none whitespace-nowrap">
             <span className="bg-gradient-to-r from-[#ff6b35] via-[#f7931e] to-[#ffd700] bg-clip-text text-transparent drop-shadow-md">
               EA YAMMIR FF
             </span>
           </h1>
-          <div className="mt-1.5 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-1.5 sm:gap-2">
             <span className="h-1 w-1 rounded-full bg-[#ff6b35] animate-pulse" />
-            <p className="font-body text-[8px] lg:text-[9px] font-bold uppercase tracking-[0.4em] text-[#8b8fa5] whitespace-nowrap">
+            <p className="font-body text-[7px] sm:text-[8px] lg:text-[9px] font-bold uppercase tracking-[0.4em] text-[#8b8fa5] whitespace-nowrap">
               Configurador PRO · V2.0
             </p>
             <span className="h-1 w-1 rounded-full bg-[#ff6b35] animate-pulse" />
           </div>
         </div>
 
-        {/* BOTÓN DERECHO: Posición absoluta clavada a la derecha para no aplastar el centro */}
-        <div className="absolute right-2 sm:right-4" ref={menuRef}>
+        {/* 👇 CORRECCIÓN 2 y 3: Botón anclado a la derecha (right-0) y más pequeño en móviles (w-10 h-10) */}
+        <div className="absolute right-0 sm:right-2" ref={menuRef}>
           {isAdmin ? (
             <div className="relative">
               <button
@@ -72,7 +70,7 @@ export function Navbar() {
                   triggerHaptic("light");
                   setMenuOpen(!menuOpen);
                 }}
-                className={`flex h-11 w-11 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
+                className={`flex h-10 w-10 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
               >
                 <svg
                   className="w-5 h-5 sm:w-6 sm:h-6"
@@ -161,11 +159,11 @@ export function Navbar() {
                 triggerHaptic("medium");
                 signOut(auth);
               }}
-              className="flex h-11 w-11 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
+              className="flex h-10 w-10 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
               title="Cerrar Sesión"
             >
               <svg
-                className="w-4 h-4 sm:w-5 sm:h-5"
+                className="w-5 h-5 sm:w-6 sm:h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
