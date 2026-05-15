@@ -2,10 +2,10 @@ import { DeviceProvider } from "@/entities/device/DeviceContext";
 import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
+import { PullToRefresh } from "@/shared/ui/PullToRefresh";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
@@ -58,10 +58,12 @@ export default function RootLayout({
           <Navbar />
           <InstallPWA />
 
-          {/* Contenedor Limpio: Sin barra inferior obstaculizando */}
-          <main className="mx-auto w-full max-w-[1400px] pb-12">
-            {children}
-          </main>
+          {/* 👇 ENVOLVEMOS EL CONTENIDO EN EL REFRESHER VIP */}
+          <PullToRefresh>
+            <main className="mx-auto w-full max-w-[1400px] pb-12">
+              {children}
+            </main>
+          </PullToRefresh>
         </DeviceProvider>
       </body>
     </html>

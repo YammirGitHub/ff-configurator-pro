@@ -8,24 +8,22 @@
 html,
 body {
   background-color: #07080f;
-  margin: 0;
-  padding: 0;
   color: #ffffff;
   font-family: 'Rajdhani', sans-serif;
+
+  /* 👇 FIX ANDROID: Altura natural para que el motor Chrome pueda deslizar */
+  min-height: 100vh;
   min-height: 100dvh;
 
-  /* Permite el scroll nativo: Clave para que Safari oculte sus barras */
-  overflow-x: hidden;
-  overflow-y: auto;
-
-  /* Mata el efecto de rebote blanco al hacer scroll */
+  /* Mata el rebote blanco sin congelar el scroll */
   overscroll-behavior-y: none;
 
-  /* Bloquea la selección accidental de texto y el parpadeo gris */
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ... mantén el resto de tus clases (.selectable-text, scrollbars ocultas) igual ... */
 
 .selectable-text {
   -webkit-user-select: text;
