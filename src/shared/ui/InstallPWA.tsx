@@ -6,20 +6,25 @@ import { useEffect, useState } from "react";
 export function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(true); // Asumimos true para evitar parpadeos, luego verificamos
-  const [closed, setClosed] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(true);
+  // 👇 FIX PWA: Iniciamos asumiendo que está cerrado para evitar parpadeos
+  const [closed, setClosed] = useState(true);
 
   useEffect(() => {
-    // 1. Verificar si ya estamos dentro de la App Instalada (Standalone)
+    // 1. Verificar si ya estamos dentro de la App Instalada
     const checkStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
 
     setIsStandalone(checkStandalone);
 
-    if (checkStandalone) return; // Si ya está instalada, no hacemos nada más
+    // 👇 FIX PWA: Consultamos la memoria permanente del celular
+    const isDismissed = localStorage.getItem("pwa_prompt_dismissed") === "true";
+    setClosed(isDismissed);
 
-    // 2. Lógica para ANDROID (Capturamos el evento nativo)
+    if (checkStandalone) return;
+
+    // 2. Lógica para ANDROID
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -48,7 +53,12 @@ export function InstallPWA() {
     }
   };
 
-  // Si ya se instaló o el usuario lo cerró, no mostramos nada
+  // 👇 FIX PWA: Función que cierra y GUARDA en la memoria permanente
+  const handleDismiss = () => {
+    setClosed(true);
+    localStorage.setItem("pwa_prompt_dismissed", "true");
+  };
+
   if (isStandalone || closed) return null;
 
   return (
@@ -74,8 +84,9 @@ export function InstallPWA() {
               </p>
             </div>
             <div className="flex items-center gap-2 ml-2">
+              {/* 👇 Aplicamos la nueva función handleDismiss */}
               <button
-                onClick={() => setClosed(true)}
+                onClick={handleDismiss}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-zinc-400 transition-colors hover:bg-white/10"
               >
                 ✕
@@ -100,8 +111,9 @@ export function InstallPWA() {
           className="fixed bottom-6 left-0 right-0 z-[100] mx-auto w-full max-w-[400px] px-4"
         >
           <div className="relative flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-[#0d0f1a]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+            {/* 👇 Aplicamos la nueva función handleDismiss */}
             <button
-              onClick={() => setClosed(true)}
+              onClick={handleDismiss}
               className="absolute right-3 top-3 text-zinc-500 hover:text-white"
             >
               ✕
@@ -146,7 +158,6 @@ export function InstallPWA() {
               </p>
             </div>
           </div>
-          {/* Triangulito apuntando hacia abajo en iOS */}
           <div className="absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b border-r border-white/10 bg-[#0d0f1a]/95 backdrop-blur-xl" />
         </motion.div>
       )}

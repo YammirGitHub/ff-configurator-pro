@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "EA Yammir FF",
     images: [
       {
-        // 👇 FIX CRÍTICO: Usamos tu .png PERO con la ruta absoluta completa
+        // 👇 FIX CRÍTICO: Usamos tu .jpeg PERO con la ruta absoluta completa
         url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg",
         width: 1200,
         height: 630,
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
-    // 👇 FIX: También aquí .png y ruta completa
+    // 👇 FIX: También aquí .jpeg y ruta completa
     images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg"],
   },
   // 📱 Iconos
@@ -56,6 +56,15 @@ export const metadata: Metadata = {
   },
 };
 
+// 👇 LA PIEZA PERDIDA: El controlador del "Notch" y la pantalla completa
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // Evita que hagan zoom pellizcando (como app nativa)
+  viewportFit: "cover", // 👈 ESTA ES LA MAGIA: Mata el borde negro de iOS y usa la pantalla total
+  themeColor: "#07080f", // 👈 Mantiene a Android fusionado con tu fondo
+};
 
 export default function RootLayout({
   children,
