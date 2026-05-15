@@ -61,10 +61,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#07080f",
+  // 👇 ELIMINAMOS la línea de themeColor para que Safari vuelva a ser transparente
   viewportFit: "cover",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
