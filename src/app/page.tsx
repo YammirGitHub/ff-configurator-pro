@@ -195,6 +195,10 @@ export default function Home() {
 
       setSavedConfigs(updatedConfigs);
       setSaveMsg("¡Guardado! ☁️");
+      // 👇 VIBRACIÓN LIGERA: Un toque seco de confirmación
+      if (typeof window !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
       setTimeout(() => setSaveMsg(""), 3000);
     } catch (error) {
       setSaveMsg("Error ❌");
@@ -229,12 +233,22 @@ export default function Home() {
   const handleGenerateClick = () => {
     if (!isVip) {
       setShowPremiumModal(true);
+      // 👇 VIBRACIÓN DE ERROR: 3 toques rápidos (solo Android)
+      if (typeof window !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([50, 50, 50, 50, 50]);
+      }
       return;
     }
 
     if (!selectedDevice) return;
     setResult(computeProConfig(selectedDevice, dpiMode, firePref));
     setScale(1);
+
+    // 👇 VIBRACIÓN DE ÉXITO (CLÍMAX VIP): Latido fuerte (solo Android)
+    if (typeof window !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([100, 50, 200]);
+    }
+
     if (window.innerWidth < 1024) {
       setTimeout(
         () =>

@@ -62,8 +62,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false, // Evita que hagan zoom pellizcando (como app nativa)
-  viewportFit: "cover", // 👈 ESTA ES LA MAGIA: Mata el borde negro de iOS y usa la pantalla total
-  themeColor: "#07080f", // 👈 Mantiene a Android fusionado con tu fondo
+  viewportFit: "cover", // 👈 ESTA ES LA MAGIA: Mata el borde negro de iOS
+  // 👇 ELIMINAMOS EL themeColor POR COMPLETO AQUÍ
 };
 
 export default function RootLayout({
