@@ -56,15 +56,13 @@ export const metadata: Metadata = {
   },
 };
 
-// 👇 LA PIEZA PERDIDA: El controlador del "Notch" y la pantalla completa
+// 👇 ELIMINAMOS themeColor POR COMPLETO AQUÍ
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  // 👇 FIX: Vuelve a poner esto para camuflar la barra de Safari/Chrome
-  themeColor: "#07080f",
 };
 
 export default function RootLayout({
@@ -72,10 +70,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className="dark">
-      {/* 👇 FIX: 100dvh en el body universal */}
       <body
-        className={`${inter.variable} min-h-[100dvh] text-zinc-50 antialiased bg-[#07080f]`}
+        className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased`}
       >
+        {/* El fondo naranja fijo */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden"
@@ -85,11 +83,19 @@ export default function RootLayout({
 
         <Particles />
 
-        <DeviceProvider>
-          <Navbar />
-          <InstallPWA />
-          <main className="mx-auto w-full max-w-[1400px]">{children}</main>
-        </DeviceProvider>
+        {/* 👇 LA CAJA MÁGICA: Este es tu nuevo motor de scroll nativo */}
+        <div
+          id="native-scroll"
+          className="absolute inset-0 w-full overflow-y-auto overflow-x-hidden scroll-smooth"
+        >
+          <DeviceProvider>
+            <Navbar />
+            <InstallPWA />
+            <main className="mx-auto w-full max-w-[1400px] min-h-[100dvh]">
+              {children}
+            </main>
+          </DeviceProvider>
+        </div>
       </body>
     </html>
   );

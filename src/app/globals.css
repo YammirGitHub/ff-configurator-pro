@@ -1,43 +1,54 @@
 @import "tailwindcss";
 
 /* ====================================================
-   📱 CONFIGURACIÓN BASE & PWA MAGIA
+   📱 1. CONFIGURACIÓN BASE & BLOQUEO NATIVO (APP SHELL)
+   Congela la pantalla física para evitar rebotes de navegador.
+   El scroll real sucederá dentro de un contenedor dedicado.
 ==================================================== */
 html,
 body {
   background-color: #07080f;
   color: #ffffff;
   font-family: 'Rajdhani', sans-serif;
-  height: 100%;
-  /* Asegura que cubra todo y no haya huecos al rebotar */
 
-  /* Elimina el rebote al hacer scroll en iOS y Android */
+  /* Candado absoluto: El fondo físico jamás se mueve ni rebota */
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  /* Elimina el rebote (overscroll) elástico en iOS y Android */
   overscroll-behavior-y: none;
 
-  /* Evita que el usuario seleccione textos por accidente al tocar la pantalla */
+  /* Evita que el usuario seleccione toda la UI por accidente al tocar */
   -webkit-user-select: none;
   user-select: none;
 
-  /* Quita el parpadeo gris al tocar botones en móviles */
+  /* Quita el feo parpadeo gris al tocar botones en pantallas táctiles */
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Permitimos que el usuario solo pueda copiar los resultados si quiere */
+/* ====================================================
+   🔓 2. EXCEPCIONES DE SELECCIÓN
+   Clase utilitaria para textos que el usuario SÍ debe poder copiar
+   (como los resultados de sensibilidad o los códigos VIP).
+==================================================== */
 .selectable-text {
   -webkit-user-select: text;
   user-select: text;
 }
 
 /* ====================================================
-   🔥 EL ASESINO DE SCROLLBARS (NIVEL SENIOR)
-   Garantiza que el scroll funcione con el dedo/mouse,
-   pero la barra visual JAMÁS ocupa espacio en pantalla.
+   👻 3. EL ASESINO DE SCROLLBARS (INVISIBLE SCROLL)
+   Permite deslizar la pantalla de forma nativa, pero oculta
+   la barra visual en cualquier navegador o sistema operativo.
 ==================================================== */
 * {
   scrollbar-width: none !important;
   /* Firefox */
   -ms-overflow-style: none !important;
-  /* IE y Edge */
+  /* Internet Explorer y Edge */
 }
 
 *::-webkit-scrollbar {
@@ -49,7 +60,8 @@ body {
 }
 
 /* ====================================================
-   ✨ ANIMACIONES
+   ✨ 4. ANIMACIONES PREMIUM
+   Efectos visuales fluidos para estados de carga o elementos VIP.
 ==================================================== */
 @keyframes shimmer {
   100% {
@@ -62,12 +74,13 @@ body {
 }
 
 /* ====================================================
-   👆 ELEMENTOS INTERACTIVOS
+   👆 5. OPTIMIZACIÓN DE INTERACCIONES TÁCTILES
+   Garantiza respuestas inmediatas sin el lag de los navegadores.
 ==================================================== */
 button,
 select,
 input {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Elimina el retraso de 300ms al hacer clic y bloquea el doble-tap zoom */
+  /* Elimina el retraso nativo de 300ms y bloquea el zoom por doble toque */
   touch-action: manipulation;
 }

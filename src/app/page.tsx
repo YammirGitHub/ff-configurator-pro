@@ -249,18 +249,16 @@ export default function Home() {
       navigator.vibrate([100, 50, 200]);
     }
 
+    // En tu handleGenerateClick, actualiza la parte del scroll final a esto:
     if (window.innerWidth < 1024) {
-      setTimeout(
-        () =>
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: "smooth",
-          }),
-        160,
-      );
+      setTimeout(() => {
+        const scroller = document.getElementById("native-scroll");
+        if (scroller) {
+          scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+        }
+      }, 160);
     }
   };
-
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBrand(e.target.value as DeviceBrand);
     setResult(null);
