@@ -32,8 +32,8 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (pathname === "/login") return null;
-
+  // 👇 FIX SENIOR: Blindaje total. Si no hay ruta o incluye "login", muere el Navbar.
+  if (!pathname || pathname.includes("login")) return null;
   return (
     <nav className="fixed top-0 z-50 flex w-full justify-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 pointer-events-none">
       <div className="pointer-events-auto relative flex items-center gap-3">
