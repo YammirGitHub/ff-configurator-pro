@@ -13,7 +13,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 👇 NUEVO: Estado para detectar el scroll
+  // Control de estado de difuminación superior
   const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -27,20 +27,14 @@ export function Navbar() {
     return () => unsubscribe();
   }, []);
 
-  // 👇 NUEVO: Listener de scroll optimizado (usamos la caja nativa)
+  // Escucha el desplazamiento nativo de la ventana del dispositivo
   useEffect(() => {
-    const scroller = document.getElementById("native-scroll");
-
     const handleScroll = () => {
-      // Si el motor de scroll nativo existe, lo leemos a él. Si no, leemos la ventana.
-      const currentScrollY = scroller ? scroller.scrollTop : window.scrollY;
-      setIsScrolled(currentScrollY > 20);
+      setIsScrolled(window.scrollY > 15);
     };
 
-    const target = scroller || window;
-    target.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => target.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -58,18 +52,17 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none ${
+      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none ${
         isScrolled
-          ? "bg-[#0d0f1a]/80 backdrop-blur-md shadow-[0_4px_30px_rgba(0,0,0,0.5)] border-b border-white/5"
+          ? "bg-[#07080f]/75 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
           : "bg-transparent"
       }`}
       style={{
-        // 👇 MAGIA PWA: Empuja el contenido debajo de la cámara
-        paddingTop: "max(1.5rem, env(safe-area-inset-top))",
+        paddingTop: "max(1.2rem, env(safe-area-inset-top))",
       }}
     >
       <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center">
-        {/* 1. BRAND PILL */}
+        {/* BRAND PILL */}
         <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <h1 className="font-display text-xl lg:text-2xl font-black tracking-tighter leading-none">
@@ -86,7 +79,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* 2. ZONA DE ACCIÓN DINÁMICA */}
+        {/* ZONA DE ACCIÓN DINÁMICA */}
         <div className="absolute right-4" ref={menuRef}>
           {isAdmin ? (
             <>

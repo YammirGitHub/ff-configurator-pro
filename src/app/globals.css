@@ -1,80 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  /* Definimos el área segura del notch/isla dinámica como variable global */
+  /* Almacena el área física de la cámara frontal, isla dinámica o notch */
   --safe-top: env(safe-area-inset-top);
 }
 
-/* ====================================================
-   📱 1. CONFIGURACIÓN BASE & BLOQUEO NATIVO (APP SHELL)
-   Congela la pantalla física para evitar rebotes de navegador.
-==================================================== */
 html,
 body {
-  background-color: #07080f !important;
+  background-color: #07080f;
   margin: 0;
   padding: 0;
   color: #ffffff;
   font-family: 'Rajdhani', sans-serif;
+  min-height: 100dvh;
 
-  /* Candado absoluto: El fondo físico jamás se mueve ni rebota */
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+  /* 👇 PERMITE EL SCROLL NATIVO: Clave para que Safari y Chrome oculten sus barras */
+  overflow-x: hidden;
+  overflow-y: auto;
 
-  /* Elimina el rebote (overscroll) elástico en iOS y Android */
-  overscroll-behavior-y: none;
-
-  /* Evita que el usuario seleccione toda la UI por accidente al tocar */
+  /* Evita selecciones accidentales en la interfaz táctil */
   -webkit-user-select: none;
   user-select: none;
 
-  /* Quita el feo parpadeo gris al tocar botones en pantallas táctiles */
+  /* Elimina el recuadro gris al pulsar botones en iOS/Android */
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ====================================================
-   🌌 2. CLASES DE INMERSIÓN PWA (EDGE-TO-EDGE)
-==================================================== */
-.immersive-bg {
-  /* El contenido respeta la cámara, pero el fondo sube hasta arriba */
-  min-height: 100dvh;
-  padding-top: var(--safe-top);
-}
-
-/* ====================================================
-   🔓 3. EXCEPCIONES DE SELECCIÓN
-   Para textos que el usuario SÍ debe poder copiar (códigos VIP).
-==================================================== */
+/* Excepción para permitir copiar elementos esenciales */
 .selectable-text {
   -webkit-user-select: text;
   user-select: text;
 }
 
-/* ====================================================
-   👻 4. EL ASESINO DE SCROLLBARS (INVISIBLE SCROLL)
-   Deslizamiento suave pero sin barras visuales estorbando.
-==================================================== */
+/* Oculta los controladores visuales de scroll sin deshabilitar la física de deslizamiento */
 * {
   scrollbar-width: none !important;
-  /* Firefox */
   -ms-overflow-style: none !important;
-  /* Internet Explorer y Edge */
 }
 
 *::-webkit-scrollbar {
   display: none !important;
-  /* Chrome, Safari, iOS, Android */
   width: 0px !important;
   height: 0px !important;
   background: transparent !important;
 }
 
-/* ====================================================
-   ✨ 5. ANIMACIONES PREMIUM
-==================================================== */
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -85,13 +55,9 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* ====================================================
-   👆 6. OPTIMIZACIÓN DE INTERACCIONES TÁCTILES
-==================================================== */
 button,
 select,
 input {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Elimina el retraso nativo de 300ms y bloquea el zoom por doble toque */
   touch-action: manipulation;
 }

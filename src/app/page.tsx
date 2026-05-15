@@ -251,17 +251,15 @@ export default function Home() {
   };
   // 👇 FIX SENIOR: Observador de Scroll Automático
   // Vigila cuándo aparece el "result" y espera a que termine la animación visual
+  // Reemplazar el useEffect del Observador de Scroll Automático por este:
   useEffect(() => {
     if (result && window.innerWidth < 1024) {
       setTimeout(() => {
-        const scroller = document.getElementById("native-scroll");
-        if (scroller) {
-          scroller.scrollTo({
-            top: scroller.scrollHeight,
-            behavior: "smooth",
-          });
-        }
-      }, 350); // 350ms es el tiempo exacto que tarda Framer Motion en dibujar la caja
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: "smooth",
+        });
+      }, 350);
     }
   }, [result]);
 
