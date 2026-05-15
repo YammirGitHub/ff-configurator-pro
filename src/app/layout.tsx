@@ -1,4 +1,5 @@
 import { DeviceProvider } from "@/entities/device/DeviceContext";
+import { BottomNav } from "@/shared/ui/BottomNav";
 import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent", // Permite el solapamiento de la barra de estado
+    statusBarStyle: "black-translucent", // Inmersión Edge-to-Edge
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
@@ -32,7 +33,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover", // Fuerza la expansión detrás de las zonas muertas de la pantalla
+  viewportFit: "cover", // Expande el diseño debajo del notch
+  themeColor: "#07080f",
 };
 
 export default function RootLayout({
@@ -43,7 +45,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased`}
       >
-        {/* Fondo degradado fijo en el lienzo base del terminal */}
+        {/* Fondo fijo detrás de toda la aplicación */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden bg-[#07080f]"
@@ -56,7 +58,13 @@ export default function RootLayout({
         <DeviceProvider>
           <Navbar />
           <InstallPWA />
-          <main className="mx-auto w-full max-w-[1400px]">{children}</main>
+
+          {/* El Túnel Invisible: Centrado y espaciado para no chocar con el BottomNav */}
+          <main className="mx-auto w-full max-w-[1400px] pb-24">
+            {children}
+          </main>
+
+          <BottomNav />
         </DeviceProvider>
       </body>
     </html>

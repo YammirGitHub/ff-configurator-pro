@@ -1,6 +1,7 @@
 "use client";
 
 import { auth } from "@/shared/config/firebase";
+import { triggerHaptic } from "@/shared/utils/haptics";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,8 +13,6 @@ export function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-
-  // Control de estado de difuminación superior
   const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -27,12 +26,8 @@ export function Navbar() {
     return () => unsubscribe();
   }, []);
 
-  // Escucha el desplazamiento nativo de la ventana del dispositivo
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 15);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 15);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -47,22 +42,20 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (!isMounted) return null;
-  if (!pathname || pathname.includes("login")) return null;
+  if (!isMounted || !pathname || pathname.includes("login")) return null;
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none ${
+      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none will-change-[backdrop-filter,background-color] ${
         isScrolled
-          ? "bg-[#07080f]/75 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+          ? "bg-[#07080f]/75 backdrop-blur-xl border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
           : "bg-transparent"
       }`}
       style={{
-        paddingTop: "max(1.2rem, env(safe-area-inset-top))",
+        paddingTop: "max(1.2rem, var(--safe-top))",
       }}
     >
-      <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center">
-        {/* BRAND PILL */}
+      <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center mx-auto">
         <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <h1 className="font-display text-xl lg:text-2xl font-black tracking-tighter leading-none">
@@ -79,12 +72,14 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* ZONA DE ACCIÓN DINÁMICA */}
         <div className="absolute right-4" ref={menuRef}>
           {isAdmin ? (
             <>
               <button
-                onClick={() => setMenuOpen(!menuOpen)}
+                onClick={() => {
+                  triggerHaptic("light");
+                  setMenuOpen(!menuOpen);
+                }}
                 className={`flex h-[52px] w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
               >
                 <svg
@@ -168,7 +163,10 @@ export function Navbar() {
             </>
           ) : (
             <button
-              onClick={() => signOut(auth)}
+              onClick={() => {
+                triggerHaptic("medium");
+                signOut(auth);
+              }}
               className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
               title="Cerrar Sesión"
             >

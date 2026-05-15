@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  /* Almacena el área física de la cámara frontal, isla dinámica o notch */
   --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
 html,
@@ -14,25 +14,25 @@ body {
   font-family: 'Rajdhani', sans-serif;
   min-height: 100dvh;
 
-  /* 👇 PERMITE EL SCROLL NATIVO: Clave para que Safari y Chrome oculten sus barras */
+  /* Permite el scroll nativo: Clave para que Safari oculte sus barras */
   overflow-x: hidden;
   overflow-y: auto;
 
-  /* Evita selecciones accidentales en la interfaz táctil */
+  /* Mata el efecto de rebote blanco al hacer scroll */
+  overscroll-behavior-y: none;
+
+  /* Bloquea la selección accidental de texto y el parpadeo gris */
   -webkit-user-select: none;
   user-select: none;
-
-  /* Elimina el recuadro gris al pulsar botones en iOS/Android */
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Excepción para permitir copiar elementos esenciales */
 .selectable-text {
   -webkit-user-select: text;
   user-select: text;
 }
 
-/* Oculta los controladores visuales de scroll sin deshabilitar la física de deslizamiento */
+/* El Asesino de Scrollbars */
 * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -45,19 +45,10 @@ body {
   background: transparent !important;
 }
 
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
 button,
 select,
 input {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Bloquea el zoom accidental por doble toque */
   touch-action: manipulation;
 }
