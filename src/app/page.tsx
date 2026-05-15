@@ -1,496 +1,783 @@
 "use client";
 
-import { auth, db, googleProvider } from "@/shared/config/firebase";
-import { GlassCard } from "@/shared/ui/GlassCard";
-import {
-  createUserWithEmailAndPassword, // 👈 MAGIA PWA: Redirección nativa
-  getRedirectResult,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithRedirect, // 👈 MAGIA PWA: Atrapa al usuario al volver
-  updateProfile,
-} from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { useDevice } from "@/entities/device/DeviceContext";
+import { DeviceBrand } from "@/entities/device/types";
+import { computeProConfig } from "@/features/calculator/math";
+import { auth, db } from "@/shared/config/firebase";
+import { PremiumModal } from "@/shared/ui/PremiumModal";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
 
-  // Modal de recuperación
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
+function StepBadge({ n }: { n: number }) {
+  return (
+    <span className="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff6b35] to-[#f7931e] text-[11px] lg:text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,107,53,0.4)]">
+      {n}
+    </span>
+  );
+}
 
-  // Form states
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+function StepHeading({ step, label }: { step: number; label: string }) {
+  return (
+    <h3 className="flex items-center gap-3 font-display text-xs lg:text-sm font-semibold uppercase tracking-[0.2em] text-[#8b8fa5]">
+      <StepBadge n={step} />
+      {label}
+    </h3>
+  );
+}
 
-  const ensureUserDoc = async (user: any, customName?: string) => {
-    const isAdmin = user.email === "jjhor24@gmail.com";
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
+function GlassCard({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0e1020]/80 p-5 lg:p-8 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      {children}
+    </div>
+  );
+}
 
-    if (!snap.exists()) {
-      await setDoc(ref, {
-        email: user.email,
-        displayName: isAdmin
-          ? "Yammir (Admin)"
-          : customName || user.displayName || "Usuario FF",
-        activo: isAdmin ? true : false,
-        rol: isAdmin ? "admin" : "user",
-        createdAt: serverTimestamp(),
-      });
-    }
-  };
-
-  const showMsg = (type: "error" | "success", msg: string) => {
-    if (type === "error") {
-      setError(msg);
-      setSuccess(null);
-    } else {
-      setSuccess(msg);
-      setError(null);
-    }
-    setTimeout(() => {
-      setError(null);
-      setSuccess(null);
-    }, 5000);
-  };
+function SensRow({
+  label,
+  desc,
+  value,
+  index,
+}: {
+  label: string;
+  desc: string;
+  value: number;
+  index: number;
+}) {
+  const prevRef = useRef(value);
+  const [pop, setPop] = useState(false);
 
   useEffect(() => {
-    // 👇 FIX SENIOR: Atrapamos al usuario cuando Google lo devuelve a la app
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          await ensureUserDoc(result.user);
-          router.push("/");
-        }
-      } catch (err: any) {
-        showMsg("error", "Error de Google: " + err.message);
-      }
-    };
-    checkRedirect();
+    if (prevRef.current !== value) {
+      setPop(true);
+      const t = setTimeout(() => setPop(false), 350);
+      prevRef.current = value;
+      return () => clearTimeout(t);
+    }
+  }, [value]);
 
+  const pct = clamp(((value - 30) / 170) * 100, 0, 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05, ease: "easeOut" }}
+      className="group relative overflow-hidden rounded-2xl border border-white/[0.05] bg-[#141728]/60 px-4 py-3 lg:px-5 lg:py-3.5 transition-all hover:border-white/10 hover:bg-[#141728] w-full"
+    >
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 rounded-l-2xl bg-gradient-to-r from-[#ff6b35]/10 to-transparent transition-all duration-500"
+        style={{ width: `${pct}%` }}
+      />
+      <div className="relative flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="font-body text-sm lg:text-base font-bold text-zinc-100">
+            {label}
+          </p>
+          <p className="mt-1 font-body text-[11px] lg:text-xs font-medium text-zinc-400 line-clamp-1">
+            {desc}
+          </p>
+        </div>
+        <span
+          className={`selectable-text font-mono min-w-[56px] rounded-xl border border-[#ff6b35]/20 bg-[#ff6b35]/10 px-3 py-1.5 text-center text-base lg:text-lg font-black text-[#ff8c5a] ${pop ? "animate-number-pop" : ""}`}
+        >
+          {value}
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
+const BRANDS: { id: DeviceBrand; name: string; icon: string }[] = [
+  { id: "apple", name: "iPhone", icon: "🍏" },
+  { id: "samsung", name: "Samsung", icon: "📱" },
+  { id: "xiaomi", name: "Xiaomi", icon: "🟠" },
+  { id: "poco", name: "Poco", icon: "🚀" },
+  { id: "motorola", name: "Motorola", icon: "🔵" },
+  { id: "huawei", name: "Huawei", icon: "🌸" },
+  { id: "honor", name: "Honor", icon: "✨" },
+  { id: "realme", name: "Realme", icon: "⚡" },
+];
+
+export default function Home() {
+  const {
+    selectedBrand,
+    selectedDevice,
+    setBrand,
+    setDevice,
+    getModelsByBrand,
+  } = useDevice();
+  const [dpiMode, setDpiMode] = useState(false);
+  const [firePref, setFirePref] = useState("medium");
+  const [result, setResult] = useState<any>(null);
+  const [scale, setScale] = useState(1);
+  const router = useRouter();
+
+  const [savedConfigs, setSavedConfigs] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+  const [showVault, setShowVault] = useState(false);
+
+  const [isVip, setIsVip] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  // 👇 AQUÍ ESTÁ EL CÓDIGO MAESTRO DEL CONFIGURADOR
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await ensureUserDoc(user);
-        router.push("/");
+      if (!user) {
+        router.push("/login");
+      } else {
+        setUserEmail(user.email || "");
+
+        // 👇 TE DA VIP INMEDIATO SI ERES EL ADMIN
+        const isAdmin = user.email === "jjhor24@gmail.com";
+
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setIsVip(isAdmin || data.activo === true);
+
+            if (data.savedConfigs) {
+              setSavedConfigs(data.savedConfigs);
+            }
+          } else {
+            setIsVip(isAdmin);
+          }
+        } catch (e) {
+          console.error("Error cargando datos", e);
+        }
+        setIsAuthLoading(false);
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleSaveToCloud = async () => {
+    if (!auth.currentUser || !result || !selectedDevice) return;
+    setIsSaving(true);
     try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      await ensureUserDoc(cred.user);
-      showMsg("success", "¡Bienvenido! Redirigiendo...");
-      router.push("/");
-    } catch (err: any) {
-      if (err.code === "auth/invalid-credential")
-        showMsg("error", "Credenciales incorrectas.");
-      else showMsg("error", "Error al iniciar sesión.");
-      setIsLoading(false);
-    }
-  };
+      const newConfig = {
+        id: Date.now().toString(),
+        name: `${selectedDevice.name} (${Math.round(scale * 100)}%)`,
+        date: new Date().toLocaleDateString(),
+        brand: selectedBrand,
+        device: selectedDevice,
+        dpiMode,
+        firePref,
+        scale,
+        result,
+      };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password !== confirmPassword)
-      return showMsg("error", "Las contraseñas no coinciden.");
-    if (password.length < 6) return showMsg("error", "Mínimo 6 caracteres.");
+      const updatedConfigs = [newConfig, ...savedConfigs];
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
 
-    setIsLoading(true);
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-      await ensureUserDoc(cred.user, name);
-      showMsg("success", "¡Cuenta creada! Redirigiendo...");
-      router.push("/");
-    } catch (err: any) {
-      if (err.code === "auth/email-already-in-use")
-        showMsg("error", "El correo ya está registrado.");
-      else showMsg("error", "Error al crear la cuenta.");
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      // 👇 FIX PWA: Usamos Redirect en lugar de Popup
-      await signInWithRedirect(auth, googleProvider);
-    } catch (err) {
-      showMsg("error", "Conectando con Google...");
-      setIsLoading(false);
-    }
-  };
-
-  const submitForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!resetEmail) return;
-    setIsLoading(true);
-    try {
-      await sendPasswordResetEmail(auth, resetEmail);
-      showMsg(
-        "success",
-        "Correo enviado. Revisa tu bandeja de entrada o spam.",
-      );
-      setShowForgotModal(false);
-      setResetEmail("");
-    } catch (err: any) {
-      if (err.code === "auth/user-not-found")
-        showMsg("error", "Este correo no está registrado.");
-      else showMsg("error", "Error al enviar el correo de recuperación.");
+      setSavedConfigs(updatedConfigs);
+      setSaveMsg("¡Guardado! ☁️");
+      setTimeout(() => setSaveMsg(""), 3000);
+    } catch (error) {
+      setSaveMsg("Error ❌");
+      setTimeout(() => setSaveMsg(""), 3000);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
-  const formVariants = {
-    hidden: (direction: number) => ({
-      x: direction > 0 ? 20 : -20,
-      opacity: 0,
-    }),
-    visible: {
-      x: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.35,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-      },
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? -20 : 20,
-      opacity: 0,
-      transition: {
-        duration: 0.25,
-        ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-      },
-    }),
+  const handleLoadConfig = (config: any) => {
+    setBrand(config.brand);
+    setDevice(config.device);
+    setDpiMode(config.dpiMode);
+    setFirePref(config.firePref);
+    setScale(config.scale || 1);
+    setResult(config.result);
+    setShowVault(false);
   };
 
-  const animationDirection = activeTab === "login" ? -1 : 1;
+  const handleDeleteConfig = async (id: string) => {
+    if (!auth.currentUser) return;
+    const updatedConfigs = savedConfigs.filter((c) => c.id !== id);
+    setSavedConfigs(updatedConfigs);
+    try {
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
+    } catch (error) {
+      console.error("Error eliminando configuración", error);
+    }
+  };
+
+  const handleGenerateClick = () => {
+    if (!isVip) {
+      setShowPremiumModal(true);
+      return;
+    }
+
+    if (!selectedDevice) return;
+    setResult(computeProConfig(selectedDevice, dpiMode, firePref));
+    setScale(1);
+    if (window.innerWidth < 1024) {
+      setTimeout(
+        () =>
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: "smooth",
+          }),
+        160,
+      );
+    }
+  };
+
+  const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setBrand(e.target.value as DeviceBrand);
+    setResult(null);
+    setScale(1);
+  };
+
+  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!selectedBrand) return;
+    const model = getModelsByBrand(selectedBrand).find(
+      (m) => m.name === e.target.value,
+    );
+    setDevice(model ?? null);
+    setResult(null);
+    setScale(1);
+  };
+
+  const currentSens = result
+    ? {
+        general: clamp(Math.round(result.sensConfig.general * scale), 30, 200),
+        redDot: clamp(Math.round(result.sensConfig.redDot * scale), 40, 200),
+        scope2x: clamp(Math.round(result.sensConfig.scope2x * scale), 35, 200),
+        scope4x: clamp(Math.round(result.sensConfig.scope4x * scale), 30, 200),
+        sniper: clamp(Math.round(result.sensConfig.sniper * scale), 30, 200),
+        camera360: clamp(
+          Math.round(result.sensConfig.camera360 * scale),
+          40,
+          200,
+        ),
+      }
+    : null;
+
+  let currentBtnSize = result?.optimalButtonSize ?? 0;
+  if (result) {
+    if (scale < 1)
+      currentBtnSize = clamp(
+        Math.round(result.optimalButtonSize + (1 - scale) * 12),
+        40,
+        60,
+      );
+    else if (scale > 1)
+      currentBtnSize = clamp(
+        Math.round(result.optimalButtonSize - (scale - 1) * 12),
+        40,
+        60,
+      );
+  }
+
+  const tierName =
+    result?.tier === "high"
+      ? "Alta"
+      : result?.tier === "mid_high"
+        ? "Media Alta"
+        : result?.tier === "mid"
+          ? "Media"
+          : "Baja";
+
+  const sensRows = currentSens
+    ? [
+        {
+          label: "⚙️ General",
+          desc: "Velocidad base para girar fluido sin perder control.",
+          val: currentSens.general,
+        },
+        {
+          label: "🔴 Punto Rojo",
+          desc: "Pensada para levantar al rojo sin pasarse por encima de la cabeza.",
+          val: currentSens.redDot,
+        },
+        {
+          label: "🔍 Mira 2x",
+          desc: "Control en media distancia, evita saltos bruscos al arrastrar.",
+          val: currentSens.scope2x,
+        },
+        {
+          label: "🔭 Mira 4x",
+          desc: "Estabilidad alta para tiros alineados al pecho/cabeza.",
+          val: currentSens.scope4x,
+        },
+        {
+          label: "🎯 Francotirador",
+          desc: "Precisión fina para que no se quede pegado ni se vaya demasiado.",
+          val: currentSens.sniper,
+        },
+        {
+          label: "📷 Cámara 360°",
+          desc: "Giros rápidos para revisar entorno sin mareos.",
+          val: currentSens.camera360,
+        },
+      ]
+    : [];
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#07080f]">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <span className="text-4xl opacity-50">🎯</span>
+          <p className="font-display text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff6b35]">
+            Sincronizando Base de Datos...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full items-center justify-center px-4 py-10 font-body">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        userEmail={userEmail}
+      />
+
       <AnimatePresence>
-        {showForgotModal && (
+        {showVault && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07080f]/80 p-4 backdrop-blur-md"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
+              initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-[400px]"
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-[500px]"
             >
-              <GlassCard className="p-8 border border-white/10 shadow-[0_0_50px_rgba(255,107,53,0.15)]">
-                <h3 className="text-xl font-display font-black text-white mb-2">
-                  Recuperar Contraseña
-                </h3>
-                <p className="text-[#8b8fa5] text-xs font-medium mb-6">
-                  Ingresa tu correo electrónico y te enviaremos un enlace seguro
-                  para restablecer tu contraseña.
-                </p>
-
-                <form
-                  onSubmit={submitForgotPassword}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 grayscale">
-                      📧
-                    </span>
-                    <input
-                      type="email"
-                      required
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/80 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
-                      placeholder="tu@email.com"
-                    />
+              <GlassCard className="p-6 lg:p-8 flex flex-col max-h-[80vh]">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl lg:text-2xl font-display font-black text-white">
+                      📂 Bóveda VIP
+                    </h3>
+                    <p className="text-[#8b8fa5] text-[11px] lg:text-xs font-medium uppercase tracking-widest mt-1">
+                      Tus configuraciones guardadas
+                    </p>
                   </div>
-                  <div className="flex gap-3 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotModal(false)}
-                      className="flex-1 rounded-xl bg-white/5 py-3 text-[13px] font-bold text-white transition-colors hover:bg-white/10"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      disabled={isLoading}
-                      type="submit"
-                      className="flex-1 rounded-xl bg-gradient-to-r from-[#ff6b35] to-[#f7931e] py-3 text-[13px] font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
-                    >
-                      {isLoading ? "Enviando..." : "Enviar Enlace"}
-                    </button>
-                  </div>
-                </form>
+                  <button
+                    onClick={() => setShowVault(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-zinc-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto pr-2 space-y-3 scrollbar-hide">
+                  {savedConfigs.length === 0 ? (
+                    <div className="text-center py-10">
+                      <span className="text-4xl opacity-30 block mb-3">👻</span>
+                      <p className="text-sm font-semibold text-zinc-500">
+                        Aún no hay configuraciones guardadas
+                      </p>
+                    </div>
+                  ) : (
+                    savedConfigs.map((config) => (
+                      <div
+                        key={config.id}
+                        className="group flex items-center justify-between rounded-2xl border border-white/5 bg-[#141728]/80 p-4 transition-all hover:border-[#ff6b35]/30 hover:bg-[#141728]"
+                      >
+                        <div>
+                          <p className="font-bold text-white text-sm">
+                            {config.name}
+                          </p>
+                          <p className="text-[11px] font-semibold text-[#8b8fa5] uppercase tracking-wider mt-0.5">
+                            {config.date} •{" "}
+                            {config.dpiMode ? "Con DPI" : "Sin DPI"}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleLoadConfig(config)}
+                            className="rounded-xl bg-white/5 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-[#ff6b35] hover:shadow-[0_0_15px_rgba(255,107,53,0.4)]"
+                          >
+                            Cargar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteConfig(config.id)}
+                            className="rounded-xl bg-white/5 px-3 py-2 text-xs font-bold text-zinc-400 transition-all hover:bg-red-500/20 hover:text-red-400"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </GlassCard>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-[440px]"
-      >
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 font-display text-3xl lg:text-4xl font-black tracking-tight text-white drop-shadow-[0_0_30px_rgba(255,107,53,0.25)]">
-            EA YAMMIR{" "}
-            <span className="bg-gradient-to-r from-[#ff6b35] via-[#f7931e] to-[#ffd700] bg-clip-text text-transparent">
-              FF
-            </span>
-          </h1>
-          <p className="font-body text-xs font-semibold uppercase tracking-widest text-[#8b8fa5]">
-            Configurador PRO
-          </p>
-        </div>
-
-        <GlassCard className="p-6 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.7)] hover:shadow-[0_30px_80px_rgba(255,107,53,0.1)] transition-shadow duration-700">
-          <div className="relative mb-8 flex w-full rounded-2xl bg-[#0a0a14]/60 p-1.5 backdrop-blur-md border border-white/5">
-            {(["login", "register"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setError(null);
-                  setSuccess(null);
-                  setActiveTab(tab);
-                }}
-                className="relative z-10 flex-1 py-3 text-[13px] font-bold uppercase tracking-wider outline-none transition-colors"
+      <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-8">
+        <GlassCard className="flex flex-col gap-6 lg:gap-8">
+          <section className="space-y-4">
+            <StepHeading step={1} label="Selecciona tu Marca" />
+            <div className="relative group">
+              <select
+                onChange={handleBrandChange}
+                value={selectedBrand ?? ""}
+                className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-sm lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
               >
-                {activeTab === tab && (
-                  <motion.div
-                    layoutId="active-tab-indicator"
-                    className="absolute inset-0 z-[-1] rounded-xl bg-gradient-to-r from-[#ff6b35] to-[#f7931e] shadow-[0_4px_15px_rgba(255,107,53,0.4)]"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <span
-                  className={
-                    activeTab === tab
-                      ? "text-white"
-                      : "text-[#6b6f8a] hover:text-[#a5a8be]"
-                  }
+                <option value="" disabled>
+                  Selecciona marca…
+                </option>
+                {BRANDS.map((brand) => (
+                  <option
+                    key={brand.id}
+                    value={brand.id}
+                    className="bg-[#0e1020]"
+                  >
+                    {brand.icon} {brand.name}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-[#4a4f6a] group-focus-within:text-[#ff6b35]">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  {tab === "login" ? "Ingresar" : "Registro"}
-                </span>
-              </button>
-            ))}
-          </div>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </section>
 
-          <AnimatePresence mode="popLayout">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, y: -10 }}
-                animate={{ opacity: 1, height: "auto", y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -10 }}
-                className="mb-6 overflow-hidden"
+          <AnimatePresence>
+            {selectedBrand && (
+              <motion.section
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 overflow-hidden"
               >
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3.5 text-center text-[13px] font-medium text-red-400 backdrop-blur-md">
-                  {error}
+                <StepHeading step={2} label="Busca tu Modelo" />
+                <div className="relative group">
+                  <select
+                    onChange={handleModelChange}
+                    value={selectedDevice?.name ?? ""}
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-sm lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
+                  >
+                    <option value="" disabled>
+                      Toca aquí para elegir…
+                    </option>
+                    {getModelsByBrand(selectedBrand).map((model, idx) => (
+                      <option
+                        key={idx}
+                        value={model.name}
+                        className="bg-[#0e1020]"
+                      >
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-5 flex items-center text-[#4a4f6a] group-focus-within:text-[#ff6b35]">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {selectedDevice && (
+              <motion.section
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                <StepHeading step={3} label="Preferencias" />
+                <div className="space-y-4 rounded-2xl border border-white/[0.06] bg-[#141728]/60 p-5">
+                  <div>
+                    <p className="mb-2 font-body text-[11px] lg:text-xs font-semibold uppercase tracking-[0.2em] text-[#8b8fa5]">
+                      Modo DPI
+                    </p>
+                    <div className="flex overflow-hidden rounded-xl border border-white/[0.06] bg-[#0e1020] p-1.5">
+                      {[
+                        { val: true, label: "Con DPI" },
+                        { val: false, label: "Sin DPI" },
+                      ].map(({ val, label }) => (
+                        <button
+                          key={String(val)}
+                          onClick={() => setDpiMode(val)}
+                          className={`flex-1 rounded-[10px] py-3 font-body text-xs lg:text-sm font-bold uppercase tracking-wider transition-all active:scale-95 ${dpiMode === val ? "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white shadow-md" : "text-[#8b8fa5] hover:text-zinc-300"}`}
+                        >
+                          {dpiMode === val && "✓ "} {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <p className="mb-2 font-body text-[11px] lg:text-xs font-semibold uppercase tracking-[0.2em] text-[#8b8fa5]">
+                      Tamaño de Disparo
+                    </p>
+                    <div className="relative">
+                      <select
+                        value={firePref}
+                        onChange={(e) => setFirePref(e.target.value)}
+                        className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-4 py-3.5 font-body text-xs lg:text-sm font-semibold text-zinc-200 outline-none focus:border-[#ff6b35]/60"
+                      >
+                        <option value="small">
+                          Botón Pequeño — Dedos rápidos
+                        </option>
+                        <option value="medium">
+                          Botón Mediano — Equilibrado
+                        </option>
+                        <option value="large">
+                          Botón Grande — Más estabilidad
+                        </option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#4a4f6a]">
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.5"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {selectedDevice && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                onClick={handleGenerateClick}
+                className={`w-full overflow-hidden rounded-[16px] py-5 lg:py-6 font-display text-sm lg:text-base font-bold uppercase tracking-[0.2em] shadow-[0_8px_24px_rgba(255,107,53,0.3)] active:scale-[0.98] transition-all duration-300 ${isVip ? "bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white" : "bg-gradient-to-r from-[#ffd700] to-[#f7931e] text-[#4a3000]"}`}
+              >
+                <span className="relative flex items-center justify-center gap-2">
+                  {isVip
+                    ? "🚀 Generar Configuración PRO"
+                    : "🔒 Desbloquear VIP para Generar"}
+                </span>
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </GlassCard>
+
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            {result && currentSens ? (
+              <motion.div
+                key="results"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+              >
+                <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-white/[0.07] bg-[#0e1020]/90 p-5 lg:p-8 shadow-[0_8px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+                  <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.15)_0%,transparent_70%)]" />
+                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-2">
+                    <div>
+                      <h2 className="font-display text-2xl lg:text-[26px] font-black leading-tight text-white flex items-center gap-2">
+                        ✨ Configuración PRO
+                      </h2>
+                      <p className="mt-2 font-body text-xs lg:text-sm uppercase tracking-widest text-[#8b8fa5]">
+                        <span className="font-semibold text-[#ff7b3c]">
+                          {selectedDevice?.name}
+                        </span>
+                        <span className="mx-2 opacity-30">|</span>Gama:{" "}
+                        <span className="font-bold text-white">{tierName}</span>
+                        <span className="mx-2 opacity-30">|</span>
+                        {dpiMode ? (
+                          <span className="text-green-400">
+                            Con DPI ({result.usedDpi})
+                          </span>
+                        ) : (
+                          <span className="text-zinc-300">Sin DPI</span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1.5">
+                      <p className="font-body text-[10px] lg:text-xs font-semibold uppercase tracking-[0.2em] text-[#8b8fa5]">
+                        Escala global
+                      </p>
+                      <div className="flex items-center rounded-xl border border-white/[0.08] bg-[#141728] p-1 shadow-inner">
+                        <button
+                          onClick={() =>
+                            setScale((prev) =>
+                              Math.max(0.1, Math.round((prev - 0.1) * 10) / 10),
+                            )
+                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.03] text-zinc-400 transition-all hover:bg-white/10 hover:text-[#ff6b35] active:scale-90"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M20 12H4"
+                            />
+                          </svg>
+                        </button>
+                        <span className="min-w-[56px] text-center font-mono text-[11px] lg:text-[12px] font-bold text-[#ffd36b]">
+                          {Math.round(scale * 100)}%
+                        </span>
+                        <button
+                          onClick={() =>
+                            setScale((prev) =>
+                              Math.min(2.0, Math.round((prev + 0.1) * 10) / 10),
+                            )
+                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.03] text-zinc-400 transition-all hover:bg-white/10 hover:text-[#ff6b35] active:scale-90"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="3"
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="relative z-10 my-4 lg:my-5 h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent" />
+                  <div className="relative z-10 flex flex-col gap-2 lg:gap-3 mb-5">
+                    {sensRows.map((item, i) => (
+                      <SensRow
+                        key={item.label}
+                        label={item.label}
+                        desc={item.desc}
+                        value={item.val}
+                        index={i}
+                      />
+                    ))}
+                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="group relative z-10 overflow-hidden rounded-[20px] border border-[#ffb74d]/20 bg-gradient-to-br from-[rgba(255,183,77,0.08)] to-[rgba(255,140,0,0.04)] p-5 lg:p-6 mb-4"
+                  >
+                    <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                    <div className="relative flex items-center justify-between">
+                      <div>
+                        <p className="font-display text-sm lg:text-base font-bold uppercase tracking-[0.1em] text-[#ffd36b]">
+                          🔥 Tamaño de Disparo
+                        </p>
+                        <p className="mt-1 font-body text-[10px] lg:text-[11px] text-amber-500/70 uppercase tracking-widest font-semibold">
+                          Calculado por IA
+                        </p>
+                      </div>
+                      <div className="selectable-text rounded-2xl bg-gradient-to-r from-[#f6d559] to-[#ffe899] px-6 lg:px-8 py-3 shadow-[0_8px_20px_rgba(246,213,89,0.2)]">
+                        <span className="font-mono text-2xl lg:text-3xl font-black text-[#4a3000]">
+                          {currentBtnSize}%
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                  <div className="flex gap-3 relative z-10">
+                    <button
+                      onClick={() => setShowVault(true)}
+                      className="flex-1 rounded-xl bg-white/5 py-3.5 text-[11px] lg:text-xs font-bold uppercase tracking-widest text-[#8b8fa5] transition-all hover:bg-white/10 hover:text-white active:scale-95 shadow-inner"
+                    >
+                      📂 Mi Bóveda
+                    </button>
+                    <button
+                      onClick={handleSaveToCloud}
+                      disabled={isSaving}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-[#ff6b35] to-[#f7931e] py-3.5 text-[11px] lg:text-xs font-bold uppercase tracking-widest text-white transition-all hover:brightness-110 active:scale-95 disabled:pointer-events-none disabled:opacity-50 shadow-[0_4px_15px_rgba(255,107,53,0.3)]"
+                    >
+                      {isSaving
+                        ? "⏳ Guardando..."
+                        : saveMsg
+                          ? saveMsg
+                          : "💾 Guardar"}
+                    </button>
+                  </div>
                 </div>
               </motion.div>
-            )}
-            {success && (
+            ) : (
               <motion.div
-                initial={{ opacity: 0, height: 0, y: -10 }}
-                animate={{ opacity: 1, height: "auto", y: 0 }}
-                exit={{ opacity: 0, height: 0, y: -10 }}
-                className="mb-6 overflow-hidden"
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="hidden lg:flex min-h-[500px] flex-col items-center justify-center rounded-[28px] border border-dashed border-white/[0.06] bg-white/[0.01]"
               >
-                <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-3.5 text-center text-[13px] font-medium text-green-400 backdrop-blur-md">
-                  {success}
+                <div className="animate-float text-center">
+                  <div className="mx-auto mb-5 flex h-16 w-16 lg:h-20 lg:w-20 items-center justify-center rounded-3xl border border-white/[0.06] bg-[#0e1020]/60">
+                    <span className="text-3xl lg:text-4xl opacity-40">🎯</span>
+                  </div>
+                  <p className="font-display text-xs lg:text-sm font-semibold uppercase tracking-[0.4em] text-[#4a4f6a]">
+                    Sistema en Espera
+                  </p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-
-          <form
-            onSubmit={activeTab === "login" ? handleLogin : handleRegister}
-            className="relative flex flex-col gap-5"
-          >
-            <AnimatePresence custom={animationDirection} mode="wait">
-              <motion.div
-                key={activeTab}
-                custom={animationDirection}
-                variants={formVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="flex flex-col gap-5"
-              >
-                {activeTab === "register" && (
-                  <div>
-                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-[#8b8fa5]">
-                      Usuario
-                    </label>
-                    <div className="group relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
-                        👤
-                      </span>
-                      <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
-                        placeholder="Tu nombre"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-[#8b8fa5]">
-                    Correo Electrónico
-                  </label>
-                  <div className="group relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
-                      📧
-                    </span>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-4 text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
-                      placeholder="tu@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <label className="block text-[11px] font-bold uppercase tracking-widest text-[#8b8fa5]">
-                      Contraseña
-                    </label>
-                    {activeTab === "login" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setResetEmail(email);
-                          setShowForgotModal(true);
-                        }}
-                        className="text-[11px] font-bold text-[#ff6b35] hover:text-[#f7931e] transition-colors outline-none"
-                      >
-                        ¿Olvidaste tu clave?
-                      </button>
-                    )}
-                  </div>
-                  <div className="group relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
-                      🔒
-                    </span>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-[16px] text-zinc-500 hover:text-[#ff6b35] transition-colors outline-none"
-                    >
-                      {showPassword ? "👁️" : "🙈"}
-                    </button>
-                  </div>
-                </div>
-
-                {activeTab === "register" && (
-                  <div>
-                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-[#8b8fa5]">
-                      Confirmar Contraseña
-                    </label>
-                    <div className="group relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg opacity-40 transition-opacity group-focus-within:opacity-100 grayscale group-focus-within:grayscale-0">
-                        🔒
-                      </span>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-[#141728]/50 py-3.5 pl-12 pr-[50px] text-base sm:text-[14px] text-white transition-all placeholder:text-zinc-600 focus:border-[#ff6b35]/60 focus:bg-[#141728] focus:shadow-[0_0_20px_rgba(255,107,53,0.15)] focus:outline-none"
-                        placeholder="Repite tu contraseña"
-                      />
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            <button
-              disabled={isLoading}
-              type="submit"
-              className="group relative mt-2 w-full overflow-hidden rounded-[14px] bg-gradient-to-r from-[#ff6b35] to-[#f7931e] py-4 text-[14px] font-bold uppercase tracking-[0.15em] text-white shadow-[0_10px_30px_rgba(255,107,53,0.3)] transition-all hover:shadow-[0_15px_40px_rgba(255,107,53,0.45)] active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100"
-            >
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-              {isLoading
-                ? "⏳ Procesando..."
-                : activeTab === "login"
-                  ? "🚀 Ingresar al Sistema"
-                  : "✨ Crear Cuenta VIP"}
-            </button>
-          </form>
-
-          <div className="my-7 flex items-center gap-4 text-[11px] font-bold uppercase tracking-widest text-[#4a4f6a]">
-            <div className="h-px flex-1 bg-white/5" />
-            O Ingresa con
-            <div className="h-px flex-1 bg-white/5" />
-          </div>
-
-          <button
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            type="button"
-            className="flex w-full items-center justify-center gap-3 rounded-[14px] border border-white/10 bg-white/[0.02] py-3.5 text-[14px] font-bold text-white transition-all hover:bg-white/[0.06] hover:border-white/20 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Google
-          </button>
-        </GlassCard>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

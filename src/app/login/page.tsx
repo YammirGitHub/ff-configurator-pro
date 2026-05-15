@@ -112,14 +112,30 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      // 👇 MAGIA PWA: Esto entra y sale de la app nativa sin romper iOS
       await signInWithRedirect(auth, googleProvider);
+      // 👇 FIX SENIOR: Si el celular bloquea el salto, destrabamos el botón en 3 segundos
+      setTimeout(() => setIsLoading(false), 3000);
     } catch (err) {
-      showMsg("error", "Error al iniciar sesión con Google.");
+      showMsg("error", "Error al conectar con Google.");
       setIsLoading(false);
     }
   };
 
+  // 👇 FIX SENIOR: Destraba la app si el usuario presiona "Atrás" desde la página de Google
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setIsLoading(false);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", handleVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", handleVisibility);
+    };
+  }, []);
   const submitForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) return;
