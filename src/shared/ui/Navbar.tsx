@@ -1,11 +1,11 @@
 "use client";
 
 import { auth } from "@/shared/config/firebase";
-import { triggerHaptic } from "@/shared/utils/haptics";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { triggerHaptic } from "@/shared/utils/haptics";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -13,7 +13,6 @@ export function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const ADMIN_EMAIL = "jjhor24@gmail.com";
@@ -24,12 +23,6 @@ export function Navbar() {
       setIsAdmin(user?.email === ADMIN_EMAIL);
     });
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 15);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -46,16 +39,15 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none will-change-[backdrop-filter,background-color] ${
-        isScrolled
-          ? "bg-[#07080f]/75 backdrop-blur-xl border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
-          : "bg-transparent"
-      }`}
+      // 👇 Eliminamos el fondo, los bordes y el difuminado del contenedor principal
+      className="fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 pointer-events-none bg-transparent"
       style={{
         paddingTop: "max(1.2rem, var(--safe-top))",
       }}
     >
       <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center mx-auto">
+
+        {/* LA PASTILLA CENTRAL (Ésta sí mantiene su propio cristal) */}
         <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <h1 className="font-display text-xl lg:text-2xl font-black tracking-tighter leading-none">
@@ -72,34 +64,20 @@ export function Navbar() {
           </div>
         </div>
 
+        {/* EL BOTÓN DERECHO (También flota independiente) */}
         <div className="absolute right-4" ref={menuRef}>
           {isAdmin ? (
             <>
               <button
                 onClick={() => {
-                  triggerHaptic("light");
+                  triggerHaptic('light');
                   setMenuOpen(!menuOpen);
                 }}
                 className={`flex h-[52px] w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
 
@@ -113,46 +91,18 @@ export function Navbar() {
                   >
                     <div className="flex flex-col gap-1">
                       {pathname !== "/admin-yammir" ? (
-                        <button
-                          onClick={() => {
-                            setMenuOpen(false);
-                            router.push("/admin-yammir");
-                          }}
-                          className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5"
-                        >
+                        <button onClick={() => { setMenuOpen(false); router.push("/admin-yammir"); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5">
                           <span className="text-lg">👑</span> Panel Maestro
                         </button>
                       ) : (
-                        <button
-                          onClick={() => {
-                            setMenuOpen(false);
-                            router.push("/");
-                          }}
-                          className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5"
-                        >
+                        <button onClick={() => { setMenuOpen(false); router.push("/"); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5">
                           <span className="text-lg">🏠</span> Configurador
                         </button>
                       )}
                       <div className="my-1 h-px w-full bg-white/5" />
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          signOut(auth);
-                        }}
-                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all"
-                      >
-                        <svg
-                          className="w-5 h-5 opacity-80"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2.5"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                          />
+                      <button onClick={() => { setMenuOpen(false); signOut(auth); }} className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all">
+                        <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                         Cerrar Sesión
                       </button>
@@ -164,24 +114,14 @@ export function Navbar() {
           ) : (
             <button
               onClick={() => {
-                triggerHaptic("medium");
+                triggerHaptic('medium');
                 signOut(auth);
               }}
               className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
               title="Cerrar Sesión"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
           )}
