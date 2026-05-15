@@ -248,17 +248,23 @@ export default function Home() {
     if (typeof window !== "undefined" && navigator.vibrate) {
       navigator.vibrate([100, 50, 200]);
     }
-
-    // En tu handleGenerateClick, actualiza la parte del scroll final a esto:
-    if (window.innerWidth < 1024) {
+  };
+  // 👇 FIX SENIOR: Observador de Scroll Automático
+  // Vigila cuándo aparece el "result" y espera a que termine la animación visual
+  useEffect(() => {
+    if (result && window.innerWidth < 1024) {
       setTimeout(() => {
         const scroller = document.getElementById("native-scroll");
         if (scroller) {
-          scroller.scrollTo({ top: scroller.scrollHeight, behavior: "smooth" });
+          scroller.scrollTo({
+            top: scroller.scrollHeight,
+            behavior: "smooth",
+          });
         }
-      }, 160);
+      }, 350); // 350ms es el tiempo exacto que tarda Framer Motion en dibujar la caja
     }
-  };
+  }, [result]);
+
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBrand(e.target.value as DeviceBrand);
     setResult(null);
