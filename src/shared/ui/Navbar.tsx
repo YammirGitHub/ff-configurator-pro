@@ -11,11 +11,17 @@ export function Navbar() {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
+  // 👇 FIX PWA: Estado para saber si la app ya cargó en el celular
+  const [isMounted, setIsMounted] = useState(false);
+
+  const menuRef = useRef<HTMLDivElement>(null);
   const ADMIN_EMAIL = "jjhor24@gmail.com";
 
   useEffect(() => {
+    // 👇 Confirmamos que ya estamos en el navegador del iPhone
+    setIsMounted(true);
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAdmin(user?.email === ADMIN_EMAIL);
     });
@@ -32,8 +38,12 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 👇 FIX SENIOR: Blindaje total. Si no hay ruta o incluye "login", muere el Navbar.
+  // 👇 BLINDAJE ABSOLUTO NIVEL SENIOR
+  // 1. Si no ha cargado el cliente, no dibujamos NADA (Evita el pantallazo en iOS)
+  if (!isMounted) return null;
+  // 2. Si estamos en la ruta de login, no dibujamos NADA
   if (!pathname || pathname.includes("login")) return null;
+
   return (
     <nav className="fixed top-0 z-50 flex w-full justify-center px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-4 pointer-events-none">
       <div className="pointer-events-auto relative flex items-center gap-3">
@@ -114,9 +124,7 @@ export function Navbar() {
                           <span className="text-lg">🏠</span> Configurador
                         </button>
                       )}
-
                       <div className="my-1 h-px w-full bg-white/5" />
-
                       <button
                         onClick={() => {
                           setMenuOpen(false);
@@ -124,7 +132,6 @@ export function Navbar() {
                         }}
                         className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all"
                       >
-                        {/* 👇 ICONO IGUAL AL DEL USUARIO */}
                         <svg
                           className="w-5 h-5 opacity-80"
                           fill="none"
