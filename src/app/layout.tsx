@@ -61,9 +61,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Evita que hagan zoom pellizcando (como app nativa)
-  viewportFit: "cover", // 👈 ESTA ES LA MAGIA: Mata el borde negro de iOS
-  // 👇 ELIMINAMOS EL themeColor POR COMPLETO AQUÍ
+  userScalable: false,
+  viewportFit: "cover",
+  // 👇 FIX: Vuelve a poner esto para camuflar la barra de Safari/Chrome
+  themeColor: "#07080f",
 };
 
 export default function RootLayout({

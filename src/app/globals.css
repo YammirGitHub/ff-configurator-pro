@@ -1,16 +1,24 @@
 @import "tailwindcss";
 
+/* ====================================================
+   📱 CONFIGURACIÓN BASE & PWA MAGIA
+==================================================== */
+html,
 body {
   background-color: #07080f;
   color: #ffffff;
   font-family: 'Rajdhani', sans-serif;
+  height: 100%;
+  /* Asegura que cubra todo y no haya huecos al rebotar */
 
-  /* MAGIA PWA: Elimina el rebote al hacer scroll en iOS y Android */
+  /* Elimina el rebote al hacer scroll en iOS y Android */
   overscroll-behavior-y: none;
-  /* MAGIA PWA: Evita que el usuario seleccione textos por accidente al tocar la pantalla */
+
+  /* Evita que el usuario seleccione textos por accidente al tocar la pantalla */
   -webkit-user-select: none;
   user-select: none;
-  /* MAGIA PWA: Quita el parpadeo gris al tocar botones en móviles */
+
+  /* Quita el parpadeo gris al tocar botones en móviles */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -40,6 +48,9 @@ body {
   background: transparent !important;
 }
 
+/* ====================================================
+   ✨ ANIMACIONES
+==================================================== */
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
@@ -50,10 +61,13 @@ body {
   animation: shimmer 2s infinite;
 }
 
+/* ====================================================
+   👆 ELEMENTOS INTERACTIVOS
+==================================================== */
 button,
 select,
 input {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  /* MAGIA PWA: Elimina el retraso de 300ms al hacer clic y bloquea el doble-tap zoom */
+  /* Elimina el retraso de 300ms al hacer clic y bloquea el doble-tap zoom */
   touch-action: manipulation;
 }
