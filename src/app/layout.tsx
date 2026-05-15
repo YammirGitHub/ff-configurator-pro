@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     images: [
       {
         // 👇 FIX CRÍTICO: Usamos tu .png PERO con la ruta absoluta completa
-        url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png",
+        url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg",
         width: 1200,
         height: 630,
         alt: "EA YAMMIR FF Preview",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "EA YAMMIR FF PRO",
     // 👇 FIX: También aquí .png y ruta completa
-    images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.png"],
+    images: ["https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg"],
   },
   // 📱 Iconos
   icons: {
