@@ -13,6 +13,7 @@ export function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const ADMIN_EMAIL = "jjhor24@gmail.com";
@@ -26,6 +27,12 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 15);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
@@ -36,44 +43,47 @@ export function Navbar() {
   }, []);
 
   if (!isMounted || !pathname || pathname.includes("login")) return null;
+
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 pointer-events-none bg-transparent"
+      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none will-change-[backdrop-filter,background-color] ${
+        isScrolled
+          ? "bg-[#07080f]/75 backdrop-blur-xl border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+          : "bg-transparent"
+      }`}
       style={{
         paddingTop: "max(1.2rem, var(--safe-top))",
       }}
     >
-      <div className="pointer-events-auto relative flex items-center justify-center w-full max-w-[1400px] mx-auto">
-        {/* 👇 CORRECCIÓN 1: Pastilla central más compacta en móviles (px-5 py-2.5) y texto (text-base) */}
-        <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-5 py-2.5 sm:px-10 sm:py-4 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
+      <div className="pointer-events-auto relative flex items-center gap-3 w-full max-w-[1400px] justify-center mx-auto">
+        <div className="relative overflow-hidden rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 px-8 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col items-center justify-center text-center">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <h1 className="font-display text-base sm:text-xl lg:text-2xl font-black tracking-tighter leading-none whitespace-nowrap">
+          <h1 className="font-display text-xl lg:text-2xl font-black tracking-tighter leading-none">
             <span className="bg-gradient-to-r from-[#ff6b35] via-[#f7931e] to-[#ffd700] bg-clip-text text-transparent drop-shadow-md">
               EA YAMMIR FF
             </span>
           </h1>
-          <div className="mt-1 flex items-center gap-1.5 sm:gap-2">
+          <div className="mt-1.5 flex items-center gap-2">
             <span className="h-1 w-1 rounded-full bg-[#ff6b35] animate-pulse" />
-            <p className="font-body text-[7px] sm:text-[8px] lg:text-[9px] font-bold uppercase tracking-[0.4em] text-[#8b8fa5] whitespace-nowrap">
+            <p className="font-body text-[7px] lg:text-[8px] font-bold uppercase tracking-[0.4em] text-[#8b8fa5] whitespace-nowrap">
               Configurador PRO · V2.0
             </p>
             <span className="h-1 w-1 rounded-full bg-[#ff6b35] animate-pulse" />
           </div>
         </div>
 
-        {/* 👇 CORRECCIÓN 2 y 3: Botón anclado a la derecha (right-0) y más pequeño en móviles (w-10 h-10) */}
-        <div className="absolute right-0 sm:right-2" ref={menuRef}>
+        <div className="absolute right-4" ref={menuRef}>
           {isAdmin ? (
-            <div className="relative">
+            <>
               <button
                 onClick={() => {
                   triggerHaptic("light");
                   setMenuOpen(!menuOpen);
                 }}
-                className={`flex h-10 w-10 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
+                className={`flex h-[52px] w-[52px] items-center justify-center rounded-full border bg-[#0d0f1a]/80 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all active:scale-95 ${menuOpen ? "border-[#ff6b35]/50 text-[#ff6b35]" : "border-white/[0.08] text-zinc-400"}`}
               >
                 <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
+                  className="w-6 h-6"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -99,7 +109,7 @@ export function Navbar() {
                     initial={{ opacity: 0, scale: 0.9, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                    className="absolute right-0 top-[calc(100%+12px)] w-48 sm:w-56 overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#0d0f1a]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl"
+                    className="absolute right-0 top-[calc(100%+12px)] w-56 overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#0d0f1a]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-3xl"
                   >
                     <div className="flex flex-col gap-1">
                       {pathname !== "/admin-yammir" ? (
@@ -110,8 +120,7 @@ export function Navbar() {
                           }}
                           className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5"
                         >
-                          <span className="text-sm sm:text-lg">👑</span> Panel
-                          Maestro
+                          <span className="text-lg">👑</span> Panel Maestro
                         </button>
                       ) : (
                         <button
@@ -121,8 +130,7 @@ export function Navbar() {
                           }}
                           className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-white hover:bg-white/5"
                         >
-                          <span className="text-sm sm:text-lg">🏠</span>{" "}
-                          Configurador
+                          <span className="text-lg">🏠</span> Configurador
                         </button>
                       )}
                       <div className="my-1 h-px w-full bg-white/5" />
@@ -134,7 +142,7 @@ export function Navbar() {
                         className="flex items-center gap-3 rounded-xl px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 active:scale-95 transition-all"
                       >
                         <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 opacity-80"
+                          className="w-5 h-5 opacity-80"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -152,18 +160,18 @@ export function Navbar() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </>
           ) : (
             <button
               onClick={() => {
                 triggerHaptic("medium");
                 signOut(auth);
               }}
-              className="flex h-10 w-10 sm:h-[52px] sm:w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/[0.08] bg-[#0d0f1a]/80 text-zinc-400 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl transition-all hover:text-red-400 hover:bg-red-500/10 active:scale-90"
               title="Cerrar Sesión"
             >
               <svg
-                className="w-5 h-5 sm:w-6 sm:h-6"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

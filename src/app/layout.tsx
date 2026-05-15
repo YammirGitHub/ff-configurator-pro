@@ -6,25 +6,19 @@ import { PullToRefresh } from "@/shared/ui/PullToRefresh";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "EA YAMMIR FF - CONFIGURADOR PRO V2.0",
-  description: "💎 Tu Ventaja VIP en Free Fire. Optimización de rendimiento.",
+  title: "EA YAMMIR FF - CONFIGURADOR PRO",
+  description: "💎 Tu Ventaja VIP en Free Fire.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black-translucent", // Inmersión Edge-to-Edge
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
-  openGraph: {
-    images: [
-      {
-        url: "https://configurador-pro-ea-yammir-ff.netlify.app/og-image.jpeg",
-      },
-    ],
-  },
 };
 
 export const viewport: Viewport = {
@@ -32,7 +26,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover",
+  viewportFit: "cover", // Expande el diseño debajo del notch
   themeColor: "#07080f",
 };
 
@@ -42,9 +36,9 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body
-        className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased`}
+        className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased min-h-[100dvh]`}
       >
-        {/* Capa de fondo estática */}
+        {/* Fondo inmersivo */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden bg-[#07080f]"
@@ -54,12 +48,13 @@ export default function RootLayout({
 
         <Particles />
 
+        {/* 👇 EL FIX: Restauramos el Provider para que 'useDevice' vuelva a funcionar */}
         <DeviceProvider>
           <Navbar />
           <InstallPWA />
 
-          {/* 👇 ENVOLVEMOS EL CONTENIDO EN EL REFRESHER VIP */}
           <PullToRefresh>
+            {/* El túnel invisible de 1400px para centrar el contenido */}
             <main className="mx-auto w-full max-w-[1400px] pb-12">
               {children}
             </main>
