@@ -13,20 +13,22 @@ export const metadata: Metadata = {
   title: "EA YAMMIR FF - CONFIGURADOR PRO",
   description: "💎 Tu Ventaja VIP en Free Fire.",
   manifest: "/manifest.json",
+  // 🍎 REGLA 1: statusBarStyle en black-translucent permite que el fondo suba
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent", // Inmersión Edge-to-Edge
+    statusBarStyle: "black-translucent",
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
 };
 
+// 📱 REGLA 1: viewportFit: "cover" rompe los márgenes blancos en Android/iOS
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover", // Expande el diseño debajo del notch
+  viewportFit: "cover",
   themeColor: "#07080f",
 };
 
@@ -38,7 +40,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased min-h-[100dvh]`}
       >
-        {/* Fondo inmersivo */}
+        {/* Fondo inmersivo global Edge-to-Edge */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden bg-[#07080f]"
@@ -48,14 +50,13 @@ export default function RootLayout({
 
         <Particles />
 
-        {/* 👇 EL FIX: Restauramos el Provider para que 'useDevice' vuelva a funcionar */}
         <DeviceProvider>
           <Navbar />
           <InstallPWA />
 
           <PullToRefresh>
-            {/* El túnel invisible de 1400px para centrar el contenido */}
-            <main className="mx-auto w-full max-w-[1400px] pb-12">
+            {/* El contenedor respeta el Notch (pt-safe-top) y la barra inferior de gestos (pb-safe-bottom) */}
+            <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
               {children}
             </main>
           </PullToRefresh>

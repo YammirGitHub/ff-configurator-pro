@@ -367,8 +367,10 @@ export default function Home() {
     );
   }
 
+  // Cambia el contenedor principal (div superior) para usar cálculo dinámico con el Notch
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-[calc(var(--spacing-safe-top)+6rem)] pb-safe-bottom sm:px-8 lg:gap-8 lg:px-12 lg:pt-[calc(var(--spacing-safe-top)+8rem)]">
+      {/* El resto de tu código del Modal, Bóveda y configurador sigue exactamente igual... */}
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
