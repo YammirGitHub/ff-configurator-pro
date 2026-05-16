@@ -2,6 +2,7 @@ import { DeviceProvider } from "@/entities/device/DeviceContext";
 import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
+import { ProgressiveBlur } from "@/shared/ui/ProgressiveBlur"; // 👈 IMPORTA EL CRISTAL
 import { PullToRefresh } from "@/shared/ui/PullToRefresh";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -49,6 +50,7 @@ export default function RootLayout({
 
         <DeviceProvider>
           {/* ELIMINADO EL StatusBarGlass. Estructura limpia y estándar. */}
+          <ProgressiveBlur />
           <Navbar />
           <InstallPWA />
 
