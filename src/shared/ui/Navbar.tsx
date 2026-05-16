@@ -46,32 +46,29 @@ export function Navbar() {
 
   return (
     <>
-      {/* 👇 1. EL CRISTAL INDEPENDIENTE (PROGRESSIVE BLUR)
-          Solo aparece al hacer scroll y se desvanece perfectamente hacia abajo
-      */}
+      {/* 👇 1. EL CRISTAL PURO (PROGRESSIVE BLUR REAL) */}
       <div
         className={`fixed top-0 left-0 right-0 z-40 h-[140px] pointer-events-none transition-opacity duration-500 will-change-[opacity,backdrop-filter] ${
           isScrolled ? "opacity-100" : "opacity-0"
         }`}
         style={{
-          // Desenfoque de grado Apple
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          // Sutil sombra oscura arriba para garantizar que la batería blanca siempre se lea
-          background:
-            "linear-gradient(to bottom, rgba(7, 8, 15, 0.65) 0%, rgba(7, 8, 15, 0) 100%)",
-          // La máscara mágica que derrite el cristal para que no haya bordes rectos
-          maskImage: "linear-gradient(to bottom, black 35%, transparent 100%)",
+          // Desenfoque físico sin colores añadidos
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          backgroundColor: "transparent", // 👈 LA CLAVE: Cero color sólido
+
+          // La máscara corta el blur suavemente hacia abajo
+          maskImage:
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
           WebkitMaskImage:
-            "linear-gradient(to bottom, black 35%, transparent 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
         }}
       />
 
-      {/* 👇 2. LOS BOTONES DEL NAVBAR (HUD LIMPIO SOBRE EL CRISTAL) */}
+      {/* 👇 2. LOS BOTONES DEL NAVBAR */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 pointer-events-none bg-transparent"
         style={{
-          // Respeta la cámara (notch) sin empujar el cristal hacia abajo
           paddingTop:
             "max(1.2rem, var(--spacing-safe-top, env(safe-area-inset-top)))",
         }}
