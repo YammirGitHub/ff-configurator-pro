@@ -35,7 +35,7 @@ export function HeroSection() {
 
           <p className="mt-2 max-w-xl text-base font-medium text-white/90 drop-shadow sm:text-lg">
             Esta aplicación respira. Ni un solo recuadro difuminado ensucia tu
-            status bar. Arquitectura nativa perfecta.....a
+            status bar. Arquitectura nativa perfecta.
           </p>
 
           <div className="mt-6">
