@@ -3,33 +3,31 @@ import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
 import { PullToRefresh } from "@/shared/ui/PullToRefresh";
-import { StatusBarGlass } from "@/shared/ui/StatusBarGlass"; // 👈 IMPORTA AQUÍ
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
-// 1. CÁSCARA NATIVA
 export const metadata: Metadata = {
   title: "EA YAMMIR FF - CONFIGURADOR PRO",
   description: "💎 Tu Ventaja VIP en Free Fire.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent", // 👈 Inmersión Edge-to-Edge para iOS
+    statusBarStyle: "black-translucent",
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
 };
 
-// 2. HARDWARE BYPASS
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover", // 👈 Obliga a la app a dibujar debajo del Notch
+  viewportFit: "cover",
+  themeColor: "#07080f", // 👈 RESTAURADO: Le dice al navegador el color exacto para evitar parpadeos
 };
 
 export default function RootLayout({
@@ -40,7 +38,6 @@ export default function RootLayout({
       <body
         className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased min-h-[100dvh]`}
       >
-        {/* Fondo inmersivo global Edge-to-Edge */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden bg-[#07080f]"
@@ -50,16 +47,12 @@ export default function RootLayout({
 
         <Particles />
 
-        {/* 👇 MOTOR RESTAURADO: El contexto vuelve a envolver la app */}
         <DeviceProvider>
-          <StatusBarGlass /> {/* 👈 AÑADE EL CRISTAL GLOBAL AQUÍ */}
+          {/* ELIMINADO EL StatusBarGlass. Estructura limpia y estándar. */}
           <Navbar />
           <InstallPWA />
+
           <PullToRefresh>
-            {/* El túnel invisible:
-              Usamos `pb-safe-bottom` (que definimos en el CSS) para asegurar
-              que el contenido nunca se esconda debajo de la barra de gestos de iPhone/Android.
-            */}
             <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
               {children}
             </main>

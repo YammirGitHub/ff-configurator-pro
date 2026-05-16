@@ -13,6 +13,7 @@ export function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const ADMIN_EMAIL = "jjhor24@gmail.com";
@@ -23,6 +24,12 @@ export function Navbar() {
       setIsAdmin(user?.email === ADMIN_EMAIL);
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 15);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -39,7 +46,12 @@ export function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 pointer-events-none bg-transparent"
+      // 👇 ESTÁNDAR PWA: Fondo oscuro sólido/translúcido sutil al hacer scroll. Funciona 100% en Safari y Android sin bugs.
+      className={`fixed top-0 left-0 right-0 z-50 flex w-full justify-center px-4 pb-4 transition-all duration-300 pointer-events-none ${
+        isScrolled
+          ? "bg-[#07080f]/90 backdrop-blur-md border-b border-white/[0.04] shadow-lg"
+          : "bg-transparent"
+      }`}
       style={{
         paddingTop:
           "max(1.2rem, var(--spacing-safe-top, env(safe-area-inset-top)))",
