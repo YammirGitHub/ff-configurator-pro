@@ -30,7 +30,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover", // 👈 Obliga a la app a dibujar debajo del Notch
-  themeColor: "#07080f",
 };
 
 export default function RootLayout({
