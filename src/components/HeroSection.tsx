@@ -14,8 +14,6 @@ export function HeroSection() {
           loading="eager"
           decoding="async"
         />
-        {/* Degradado solo abajo para texto. Arriba queda 100% limpio. */}
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black to-transparent" />
       </div>
 
       {/* 👇 REGLA 3 (CONTENEDOR HIJO):

@@ -28,7 +28,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#07080f", // 👈 RESTAURADO: Le dice al navegador el color exacto para evitar parpadeos
 };
 
 export default function RootLayout({

@@ -17,8 +17,14 @@ body {
   padding: 0;
   min-height: 100dvh;
 
-  /* Mata el "rebote blanco" al llegar al final del scroll */
+  /* 👇 LA CLAVE: Fondo 100% transparente para que el background inmersivo domine todo abajo */
+  background-color: transparent !important;
+
+  /* Control de scroll nativo y bloqueo de ejes */
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior-y: none;
+  /* Mata el "rebote blanco" al llegar al final del scroll */
 
   /* Bloquea selección de texto fantasma y destellos de toque */
   -webkit-user-select: none;
@@ -45,5 +51,5 @@ body {
 button,
 a {
   touch-action: manipulation;
-  /* Anula retraso de 300ms */
+  /* Anula retraso de 300ms en táctil */
 }
