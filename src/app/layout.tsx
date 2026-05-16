@@ -3,6 +3,7 @@ import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
 import { PullToRefresh } from "@/shared/ui/PullToRefresh";
+import { StatusBarGlass } from "@/shared/ui/StatusBarGlass"; // 👈 IMPORTA AQUÍ
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -52,9 +53,9 @@ export default function RootLayout({
 
         {/* 👇 MOTOR RESTAURADO: El contexto vuelve a envolver la app */}
         <DeviceProvider>
+          <StatusBarGlass /> {/* 👈 AÑADE EL CRISTAL GLOBAL AQUÍ */}
           <Navbar />
           <InstallPWA />
-
           <PullToRefresh>
             {/* El túnel invisible:
               Usamos `pb-safe-bottom` (que definimos en el CSS) para asegurar
