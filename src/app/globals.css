@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* 👈 REGLA 2: Variables de entorno nativas para calcular el notch en Tailwind v4 */
+/* 👇 REGLA 2: Variables nativas de Tailwind v4 para leer el hardware (Notch/Isla Dinámica) */
 @theme {
   --spacing-safe-top: env(safe-area-inset-top);
   --spacing-safe-bottom: env(safe-area-inset-bottom);
@@ -9,32 +9,30 @@
 }
 
 /* ====================================================
-   📱 CONFIGURACIÓN BASE & BLOQUEO NATIVO (APP SHELL)
+   📱 CONFIGURACIÓN APP NATIVA (ZERO WEB FEEL)
 ==================================================== */
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
-  background-color: #07080f;
 
-  /* Desbloquea el motor de scroll en Android, pero mata el rebote elástico */
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* Mata el "rebote blanco" al llegar al final del scroll */
   overscroll-behavior-y: none;
 
-  /* Comportamiento nativo de UI */
+  /* Bloquea selección de texto fantasma y destellos de toque */
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Solo permitimos copiar donde sea estrictamente necesario */
 .selectable-text {
   -webkit-user-select: text;
   user-select: text;
 }
 
-/* El Asesino de Scrollbars */
+/* Asesino absoluto de barras de desplazamiento */
 * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -42,15 +40,10 @@ body {
 
 *::-webkit-scrollbar {
   display: none !important;
-  width: 0px !important;
-  height: 0px !important;
-  background: transparent !important;
 }
 
 button,
-select,
-input,
 a {
   touch-action: manipulation;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Anula retraso de 300ms */
 }
