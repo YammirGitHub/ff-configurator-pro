@@ -15,16 +15,13 @@ html,
 body {
   margin: 0;
   padding: 0;
-  min-height: 100dvh;
 
-  /* Fondo transparente para el background inmersivo */
+  /* 👇 FIX ANDROID: Eliminamos min-height: 100dvh de aquí.
+     Dejamos que el body crezca naturalmente según el contenido para que Blink libere el scroll Y. */
+
   background-color: transparent !important;
-
-  /* 👇 FIX ANDROID: Solo bloqueamos el desbordamiento horizontal (X).
-     Al no poner 'overflow-y', Android retoma el scroll nativo libremente. */
-  overflow-x: hidden;
   overscroll-behavior-y: none;
-  /* Mantiene apagado el rebote blanco nativo */
+  /* Mata el rebote blanco al llegar al final */
 
   /* Bloquea selección de texto fantasma y destellos de toque */
   -webkit-user-select: none;
@@ -36,6 +33,11 @@ body {
 .selectable-text {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* 👇 Evitamos scroll horizontal a nivel general sin bloquear el vertical */
+body {
+  overflow-x: hidden;
 }
 
 /* Asesino absoluto de barras de desplazamiento */

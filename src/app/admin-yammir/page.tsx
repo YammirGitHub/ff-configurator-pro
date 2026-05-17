@@ -155,7 +155,8 @@ export default function AdminDashboard() {
   const totalVips = users.filter((u) => u.activo).length;
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-36 pb-12 sm:px-8 lg:px-12 lg:pt-40 font-body bg-[#07080f]">
+    // 👇 FIX APLICADO: pt-24 para móvil, lg:pt-28 para PC (Pixel Perfect con page.tsx)
+    <div className="relative flex min-h-[100dvh] w-full flex-col items-center px-4 pt-24 pb-12 sm:px-8 lg:px-12 lg:pt-28 font-body bg-[#07080f]">
       <Particles />
 
       <AnimatePresence>
@@ -234,7 +235,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* 👇 FIX: Ajustado a 3 columnas sin el botón de actualizar */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
           <GlassCard className="p-4 text-center flex flex-col justify-center">
             <p className="text-[10px] lg:text-[11px] font-bold text-[#8b8fa5] uppercase tracking-widest">
