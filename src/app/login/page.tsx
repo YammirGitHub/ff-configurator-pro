@@ -7,14 +7,13 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
   updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
 export default function LoginPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
@@ -112,9 +111,8 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      await signInWithRedirect(auth, googleProvider);
-      // 👇 FIX SENIOR: Si el celular bloquea el salto, destrabamos el botón en 3 segundos
-      setTimeout(() => setIsLoading(false), 3000);
+      // 👈 FIX: Usamos Popup. En una PWA abrirá una pestaña in-app nativa (SFSafariViewController) que no rompe la sesión.
+      await signInWithPopup(auth, googleProvider);
     } catch (err) {
       showMsg("error", "Error al conectar con Google.");
       setIsLoading(false);

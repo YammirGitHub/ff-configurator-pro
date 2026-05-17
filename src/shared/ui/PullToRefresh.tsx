@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/shared/utils/haptics";
-
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation"; // 👈 IMPORTAR
+import { useState } from "react";
 export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const [startY, setStartY] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  const router = useRouter(); // 👈 INICIAR ROUTER
   // Distancia necesaria para activar la recarga
   const THRESHOLD = 90;
 
@@ -37,7 +37,8 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       // 1. Activamos recarga
       setIsRefreshing(true);
       triggerHaptic("success");
-
+      // 👈 FIX: Soft Refresh inmersivo
+      router.refresh(); // Actualiza Server Components en segundo plano
       // 2. Simulamos tiempo de espera visual y recargamos
       setTimeout(() => {
         window.location.reload();
@@ -63,7 +64,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
             animate={{
               opacity: 1,
               // Baja dinámicamente con tu dedo, se clava en 40px si refresca
-              y: isRefreshing ? 40 : Math.max(0, pullDistance - 40)
+              y: isRefreshing ? 40 : Math.max(0, pullDistance - 40),
             }}
             exit={{ opacity: 0, scale: 0.5 }}
             className="fixed left-1/2 z-[100] flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full bg-[#0d0f1a] border border-[#ff6b35]/30 shadow-[0_4px_20px_rgba(255,107,53,0.4)] backdrop-blur-xl"

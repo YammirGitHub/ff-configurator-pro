@@ -31,8 +31,8 @@ export function BottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 bg-[#07080f]/90 backdrop-blur-2xl border-t border-white/[0.04] shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
       style={{
-        // Protege contra la barra de gestos inferior de iPhone y Android
-        paddingBottom: "max(0.5rem, var(--safe-bottom))",
+        // 👈 FIX: Usar env() directamente o la variable correcta
+        paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
       }}
     >
       <div className="flex justify-around items-center h-16 px-4 max-w-[1400px] mx-auto w-full">

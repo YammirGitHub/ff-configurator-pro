@@ -1,8 +1,7 @@
 // src/shared/config/firebase.ts
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-// 👇 IMPORTAMOS EL MOTOR DE CACHÉ OFFLINE
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBjfYvrBR_l2bdl2W0Va82yn9W70sx1cKc",
@@ -20,8 +19,9 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// 🔥 MAGIA PWA: Habilitamos la Caché Offline Persistente
-// Ahora tu app cargará los datos en 0 milisegundos directamente del disco del celular
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+// 🔥 FIX: Solo activamos la caché PWA si estamos en el celular (navegador), no en el servidor.
+export const db = typeof window !== "undefined"
+  ? initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    })
+  : getFirestore(app);
