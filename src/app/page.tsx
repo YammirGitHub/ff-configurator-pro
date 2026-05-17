@@ -4,8 +4,9 @@ import { useDevice } from "@/entities/device/DeviceContext";
 import { DeviceBrand } from "@/entities/device/types";
 import { computeProConfig } from "@/features/calculator/math";
 import { auth, db } from "@/shared/config/firebase";
+import { GlassCard } from "@/shared/ui/GlassCard"; // 👈 FIX: Importamos tu componente animado original
 import { PremiumModal } from "@/shared/ui/PremiumModal";
-import { triggerHaptic } from "@/shared/utils/haptics"; // 👈 IMPORTADO PARA EL FIX DE HAPTICS
+import { triggerHaptic } from "@/shared/utils/haptics";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -29,23 +30,6 @@ function StepHeading({ step, label }: { step: number; label: string }) {
       <StepBadge n={step} />
       {label}
     </h3>
-  );
-}
-
-function GlassCard({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0e1020]/80 p-5 lg:p-8 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl ${className}`}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      {children}
-    </div>
   );
 }
 
@@ -143,7 +127,7 @@ export default function Home() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
-        setIsAuthLoading(false); // 👈 AÑADE ESTA LÍNEA AQUÍ
+        setIsAuthLoading(false);
       } else {
         setUserEmail(user.email || "");
         const isAdmin = user.email === "jjhor24@gmail.com";
@@ -195,7 +179,6 @@ export default function Home() {
       setSavedConfigs(updatedConfigs);
       setSaveMsg("¡Guardado! ☁️");
 
-      // 👇 FIX BUG 2: Vibración segura que no crashea en Safari iOS
       triggerHaptic("light");
 
       setTimeout(() => setSaveMsg(""), 3000);
@@ -232,7 +215,6 @@ export default function Home() {
   const handleGenerateClick = () => {
     if (!isVip) {
       setShowPremiumModal(true);
-      // 👇 FIX BUG 2: Notificación táctil de denegación segura para iOS y Android
       triggerHaptic("error");
       return;
     }
@@ -241,11 +223,9 @@ export default function Home() {
     setResult(computeProConfig(selectedDevice, dpiMode, firePref));
     setScale(1);
 
-    // 👇 FIX BUG 2: Latido premium de éxito universal
     triggerHaptic("success");
   };
 
-  // 👇 FIX BUG 1: Observador de Scroll a prueba de fugas de memoria con desmonte limpio
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -353,6 +333,13 @@ export default function Home() {
         },
       ]
     : [];
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-transparent pointer-events-none"></div>
+    );
+  }
+
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
       <PremiumModal
@@ -364,6 +351,7 @@ export default function Home() {
       <AnimatePresence>
         {showVault && (
           <motion.div
+            key="vault-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -483,6 +471,7 @@ export default function Home() {
           <AnimatePresence>
             {selectedBrand && (
               <motion.section
+                key="model-section"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -531,6 +520,7 @@ export default function Home() {
           <AnimatePresence>
             {selectedDevice && (
               <motion.section
+                key="pref-section"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -602,6 +592,7 @@ export default function Home() {
           <AnimatePresence>
             {selectedDevice && (
               <motion.button
+                key="generate-btn"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 onClick={handleGenerateClick}

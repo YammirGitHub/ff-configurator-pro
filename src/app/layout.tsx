@@ -2,7 +2,7 @@ import { DeviceProvider } from "@/entities/device/DeviceContext";
 import { InstallPWA } from "@/shared/ui/InstallPWA";
 import { Navbar } from "@/shared/ui/Navbar";
 import { Particles } from "@/shared/ui/Particles";
-import { ProgressiveBlur } from "@/shared/ui/ProgressiveBlur"; // 👈 IMPORTA EL CRISTAL
+import { ProgressiveBlur } from "@/shared/ui/ProgressiveBlur";
 import { PullToRefresh } from "@/shared/ui/PullToRefresh";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -28,6 +28,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#07080f", // 👈 FIX 1: Obliga a Safari a pintar el fondo superior oscuro
+  colorScheme: "dark", // 👈 FIX 2: Le dice a los dispositivos de Apple que la app es 100% oscura
 };
 
 export default function RootLayout({
@@ -48,12 +50,12 @@ export default function RootLayout({
         <Particles />
 
         <DeviceProvider>
-          {/* ELIMINADO EL StatusBarGlass. Estructura limpia y estándar. */}
           <ProgressiveBlur />
           <Navbar />
           <InstallPWA />
 
           <PullToRefresh>
+            {/* 👇 RESTAURADO: Padding limpio de Edge-to-Edge puro */}
             <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
               {children}
             </main>
