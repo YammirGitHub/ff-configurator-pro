@@ -58,7 +58,8 @@ export default function RootLayout({
           <PullToRefresh>
             {/* 👇 FIX MAESTRO DE ESPACIADO: pt-32 (iPhone) sm:pt-36 (Tablet) lg:pt-40 (PC) */}
             {/* Esto obliga al contenido a bajar y respira por debajo del Navbar con un aire premium */}
-            <main className="mx-auto w-full max-w-[1400px] pt-32 sm:pt-36 lg:pt-40 pb-safe-bottom px-4 sm:px-8 lg:px-12">
+            {/* Déjalo exactamente así, limpio: */}
+            <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
               {children}
             </main>
           </PullToRefresh>
