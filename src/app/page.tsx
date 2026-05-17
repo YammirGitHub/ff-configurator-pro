@@ -143,6 +143,7 @@ export default function Home() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
+        setIsAuthLoading(false); // 👈 AÑADE ESTA LÍNEA AQUÍ
       } else {
         setUserEmail(user.email || "");
         const isAdmin = user.email === "jjhor24@gmail.com";
@@ -352,20 +353,6 @@ export default function Home() {
         },
       ]
     : [];
-
-  if (isAuthLoading) {
-    return (
-      <div className="flex min-h-[100dvh] w-full items-center justify-center bg-[#07080f]">
-        <div className="flex flex-col items-center gap-4 animate-pulse">
-          <span className="text-4xl opacity-50">🎯</span>
-          <p className="font-display text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff6b35]">
-            Sincronizando Base de Datos...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
       <PremiumModal
