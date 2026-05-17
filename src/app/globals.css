@@ -17,14 +17,14 @@ body {
   padding: 0;
   min-height: 100dvh;
 
-  /* 👇 LA CLAVE: Fondo 100% transparente para que el background inmersivo domine todo abajo */
+  /* Fondo transparente para el background inmersivo */
   background-color: transparent !important;
 
-  /* Control de scroll nativo y bloqueo de ejes */
+  /* 👇 FIX ANDROID: Solo bloqueamos el desbordamiento horizontal (X).
+     Al no poner 'overflow-y', Android retoma el scroll nativo libremente. */
   overflow-x: hidden;
-  overflow-y: auto;
   overscroll-behavior-y: none;
-  /* Mata el "rebote blanco" al llegar al final del scroll */
+  /* Mantiene apagado el rebote blanco nativo */
 
   /* Bloquea selección de texto fantasma y destellos de toque */
   -webkit-user-select: none;
