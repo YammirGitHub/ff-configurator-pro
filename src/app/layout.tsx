@@ -10,16 +10,45 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+// 👇 FIX: Sin barra diagonal (/) al final para evitar la doble barra (//) en las imágenes Open Graph
+const SITE_URL = "https://configurador-pro-ea-yammir-ff.netlify.app";
+
 export const metadata: Metadata = {
   title: "EA YAMMIR FF - CONFIGURADOR PRO",
   description: "💎 Tu Ventaja VIP en Free Fire.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent", // 🍎 Fundamental para Edge-to-Edge
+    statusBarStyle: "black-translucent",
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
+
+  // 👇 BANNER MASTER FIX (Open Graph)
+  openGraph: {
+    title: "EA YAMMIR FF - CONFIGURADOR PRO",
+    description: "💎 Tu Ventaja VIP en Free Fire.",
+    url: SITE_URL,
+    siteName: "EA Yammir FF",
+    images: [
+      {
+        url: `${SITE_URL}/og-image.jpeg`, // Genera la ruta exacta y limpia
+        width: 1200,
+        height: 630,
+        alt: "Configurador PRO EA Yammir FF",
+      },
+    ],
+    locale: "es_ES",
+    type: "website",
+  },
+
+  // 👇 TWITTER/X BANNER CARD
+  twitter: {
+    card: "summary_large_image",
+    title: "EA YAMMIR FF - CONFIGURADOR PRO",
+    description: "💎 Tu Ventaja VIP en Free Fire.",
+    images: [`${SITE_URL}/og-image.jpeg`],
+  },
 };
 
 export const viewport: Viewport = {
@@ -27,9 +56,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover", // 📱 Fundamental para Edge-to-Edge
-  themeColor: "#07080f", // 🎨 Asegura el color oscuro en el login
-  colorScheme: "dark", // 🎨 Le dice a iOS que la app es oscura
+  viewportFit: "cover", // Inmersión Edge-to-Edge nativa
+  themeColor: "#07080f", // Fondo oscuro blindado en Safari/Chrome
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -56,9 +85,6 @@ export default function RootLayout({
           <InstallPWA />
 
           <PullToRefresh>
-            {/* 👇 FIX MAESTRO DE ESPACIADO: pt-32 (iPhone) sm:pt-36 (Tablet) lg:pt-40 (PC) */}
-            {/* Esto obliga al contenido a bajar y respira por debajo del Navbar con un aire premium */}
-            {/* Déjalo exactamente así, limpio: */}
             <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
               {children}
             </main>
