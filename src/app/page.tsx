@@ -8,7 +8,7 @@ import { GlassCard } from "@/shared/ui/GlassCard";
 import { PremiumModal } from "@/shared/ui/PremiumModal";
 import { triggerHaptic } from "@/shared/utils/haptics";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, setDoc } from "firebase/firestore"; // 👈 FIX: Importamos onSnapshot
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -123,43 +123,54 @@ export default function Home() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // 👇 FIX MAESTRO: Lógica de Tiempo Real con onSnapshot y limpieza de memoria
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeDb: () => void;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
         router.push("/login");
         setIsAuthLoading(false);
       } else {
         setUserEmail(user.email || "");
         const isAdmin = user.email === "jjhor24@gmail.com";
+        const userRef = doc(db, "users", user.uid);
 
-        try {
-          const userRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(userRef);
+        // onSnapshot lee la memoria local en 0ms y luego sincroniza en silencio.
+        unsubscribeDb = onSnapshot(
+          userRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setIsVip(isAdmin || data.activo === true);
 
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setIsVip(isAdmin || data.activo === true);
-
-            if (data.savedConfigs) {
-              setSavedConfigs(data.savedConfigs);
+              if (data.savedConfigs) {
+                setSavedConfigs(data.savedConfigs);
+              }
+            } else {
+              setIsVip(isAdmin);
             }
-          } else {
-            setIsVip(isAdmin);
-          }
-        } catch (e) {
-          console.error("Error cargando datos", e);
-        }
-        setIsAuthLoading(false);
+            setIsAuthLoading(false); // Libera la pantalla de carga instantáneamente
+          },
+          (error) => {
+            console.error("Error sincronizando en tiempo real:", error);
+            setIsAuthLoading(false);
+          },
+        );
       }
     });
 
-    return () => unsubscribe();
+    // Limpieza de memoria ("Zero Memory Leaks")
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeDb) unsubscribeDb();
+    };
   }, [router]);
 
   const handleSaveToCloud = async () => {
     if (!auth.currentUser || !result || !selectedDevice) return;
 
-    // 👇 FIX BUG 2: Evitar spam y clonación de configuraciones idénticas
+    // FIX BUG: Evitar spam y clonación de configuraciones idénticas
     const configName = `${selectedDevice.name} (${Math.round(scale * 100)}%)`;
     const isDuplicate = savedConfigs.some(
       (c) =>
@@ -193,7 +204,7 @@ export default function Home() {
       const userRef = doc(db, "users", auth.currentUser.uid);
       await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
 
-      setSavedConfigs(updatedConfigs);
+      // No necesitamos setSavedConfigs aquí manualmente porque onSnapshot lo actualizará instantáneamente.
       setSaveMsg("¡Guardado! ☁️");
 
       triggerHaptic("light");
@@ -220,7 +231,7 @@ export default function Home() {
   const handleDeleteConfig = async (id: string) => {
     if (!auth.currentUser) return;
     const updatedConfigs = savedConfigs.filter((c) => c.id !== id);
-    setSavedConfigs(updatedConfigs);
+    // Tampoco necesitamos un set local aquí, Firestore empujará la lista actualizada automáticamente
     try {
       const userRef = doc(db, "users", auth.currentUser.uid);
       await setDoc(userRef, { savedConfigs: updatedConfigs }, { merge: true });
@@ -452,7 +463,6 @@ export default function Home() {
               <select
                 onChange={handleBrandChange}
                 value={selectedBrand ?? ""}
-                // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
                 className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-[16px] lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
               >
                 <option value="" disabled>
@@ -500,7 +510,6 @@ export default function Home() {
                   <select
                     onChange={handleModelChange}
                     value={selectedDevice?.name ?? ""}
-                    // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
                     className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-[16px] lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
                   >
                     <option value="" disabled>
@@ -574,7 +583,6 @@ export default function Home() {
                       <select
                         value={firePref}
                         onChange={(e) => setFirePref(e.target.value)}
-                        // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
                         className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-4 py-3.5 font-body text-[16px] lg:text-sm font-semibold text-zinc-200 outline-none focus:border-[#ff6b35]/60"
                       >
                         <option value="small">
