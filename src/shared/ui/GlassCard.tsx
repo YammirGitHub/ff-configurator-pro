@@ -14,7 +14,8 @@ export function GlassCard({ children, className }: GlassCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0e1020]/80 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl",
+        // 👇 FIX: Restaurado el padding interno (p-5 sm:p-6 lg:p-8) para que el contenido respire
+        "relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0e1020]/80 p-5 sm:p-6 lg:p-8 shadow-[0_8px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl",
         className,
       )}
     >

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black-translucent", // 🍎 Fundamental para Edge-to-Edge
     title: "EA Yammir FF",
   },
   icons: { icon: "/icon.png", apple: "/icon.png" },
@@ -27,9 +27,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover",
-  themeColor: "#07080f", // 👈 FIX 1: Obliga a Safari a pintar el fondo superior oscuro
-  colorScheme: "dark", // 👈 FIX 2: Le dice a los dispositivos de Apple que la app es 100% oscura
+  viewportFit: "cover", // 📱 Fundamental para Edge-to-Edge
+  themeColor: "#07080f", // 🎨 Asegura el color oscuro en el login
+  colorScheme: "dark", // 🎨 Le dice a iOS que la app es oscura
 };
 
 export default function RootLayout({
@@ -40,6 +40,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} bg-[#07080f] text-zinc-50 antialiased min-h-[100dvh]`}
       >
+        {/* Fondo inmersivo con gradiente y partículas */}
         <div
           aria-hidden="true"
           className="pointer-events-none fixed inset-0 z-[-2] overflow-hidden bg-[#07080f]"
@@ -55,8 +56,9 @@ export default function RootLayout({
           <InstallPWA />
 
           <PullToRefresh>
-            {/* 👇 RESTAURADO: Padding limpio de Edge-to-Edge puro */}
-            <main className="mx-auto w-full max-w-[1400px] pb-safe-bottom">
+            {/* 👇 FIX MAESTRO DE ESPACIADO: pt-32 (iPhone) sm:pt-36 (Tablet) lg:pt-40 (PC) */}
+            {/* Esto obliga al contenido a bajar y respira por debajo del Navbar con un aire premium */}
+            <main className="mx-auto w-full max-w-[1400px] pt-32 sm:pt-36 lg:pt-40 pb-safe-bottom px-4 sm:px-8 lg:px-12">
               {children}
             </main>
           </PullToRefresh>

@@ -4,7 +4,7 @@ import { useDevice } from "@/entities/device/DeviceContext";
 import { DeviceBrand } from "@/entities/device/types";
 import { computeProConfig } from "@/features/calculator/math";
 import { auth, db } from "@/shared/config/firebase";
-import { GlassCard } from "@/shared/ui/GlassCard"; // 👈 FIX: Importamos tu componente animado original
+import { GlassCard } from "@/shared/ui/GlassCard";
 import { PremiumModal } from "@/shared/ui/PremiumModal";
 import { triggerHaptic } from "@/shared/utils/haptics";
 import { onAuthStateChanged } from "firebase/auth";
@@ -158,11 +158,28 @@ export default function Home() {
 
   const handleSaveToCloud = async () => {
     if (!auth.currentUser || !result || !selectedDevice) return;
+
+    // 👇 FIX BUG 2: Evitar spam y clonación de configuraciones idénticas
+    const configName = `${selectedDevice.name} (${Math.round(scale * 100)}%)`;
+    const isDuplicate = savedConfigs.some(
+      (c) =>
+        c.name === configName &&
+        c.dpiMode === dpiMode &&
+        c.firePref === firePref,
+    );
+
+    if (isDuplicate) {
+      setSaveMsg("Ya guardado ✓");
+      setTimeout(() => setSaveMsg(""), 2000);
+      triggerHaptic("error");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const newConfig = {
         id: Date.now().toString(),
-        name: `${selectedDevice.name} (${Math.round(scale * 100)}%)`,
+        name: configName,
         date: new Date().toLocaleDateString(),
         brand: selectedBrand,
         device: selectedDevice,
@@ -435,7 +452,8 @@ export default function Home() {
               <select
                 onChange={handleBrandChange}
                 value={selectedBrand ?? ""}
-                className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-sm lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
+                // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
+                className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-[16px] lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
               >
                 <option value="" disabled>
                   Selecciona marca…
@@ -482,7 +500,8 @@ export default function Home() {
                   <select
                     onChange={handleModelChange}
                     value={selectedDevice?.name ?? ""}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-sm lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
+                    // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-5 py-4 font-body text-[16px] lg:text-base font-semibold text-zinc-100 outline-none transition-all focus:border-[#ff6b35]/60 hover:border-white/[0.12]"
                   >
                     <option value="" disabled>
                       Toca aquí para elegir…
@@ -555,7 +574,8 @@ export default function Home() {
                       <select
                         value={firePref}
                         onChange={(e) => setFirePref(e.target.value)}
-                        className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-4 py-3.5 font-body text-xs lg:text-sm font-semibold text-zinc-200 outline-none focus:border-[#ff6b35]/60"
+                        // 👇 FIX BUG 1: text-[16px] forzado para matar el zoom en iOS Safari
+                        className="w-full cursor-pointer appearance-none rounded-xl border border-white/[0.07] bg-[#141728] px-4 py-3.5 font-body text-[16px] lg:text-sm font-semibold text-zinc-200 outline-none focus:border-[#ff6b35]/60"
                       >
                         <option value="small">
                           Botón Pequeño — Dedos rápidos
