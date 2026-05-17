@@ -7,33 +7,31 @@ export function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   const [isStandalone, setIsStandalone] = useState(true);
-  // 👇 FIX PWA: Iniciamos asumiendo que está cerrado para evitar parpadeos
   const [closed, setClosed] = useState(true);
 
   useEffect(() => {
-    // 1. Verificar si ya estamos dentro de la App Instalada
     const checkStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true;
 
     setIsStandalone(checkStandalone);
 
-    // 👇 FIX PWA: Consultamos la memoria permanente del celular
     const isDismissed = localStorage.getItem("pwa_prompt_dismissed") === "true";
     setClosed(isDismissed);
 
     if (checkStandalone) return;
 
-    // 2. Lógica para ANDROID
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
-    // 3. Lógica para iOS (Detectamos si es iPhone/iPad)
+    // 👇 FIX BUG 3: Detección PWA infalible para iPhone y iPads de última generación (M1, M2, M4)
     const isIOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) &&
+      !(window as any).MSStream;
 
     if (isIOS) {
       setShowIOSPrompt(true);
@@ -53,7 +51,6 @@ export function InstallPWA() {
     }
   };
 
-  // 👇 FIX PWA: Función que cierra y GUARDA en la memoria permanente
   const handleDismiss = () => {
     setClosed(true);
     localStorage.setItem("pwa_prompt_dismissed", "true");
@@ -84,7 +81,6 @@ export function InstallPWA() {
               </p>
             </div>
             <div className="flex items-center gap-2 ml-2">
-              {/* 👇 Aplicamos la nueva función handleDismiss */}
               <button
                 onClick={handleDismiss}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-zinc-400 transition-colors hover:bg-white/10"
@@ -102,7 +98,7 @@ export function InstallPWA() {
         </motion.div>
       )}
 
-      {/* 🍎 BANNER INSTRUCTIVO PARA IOS (IPHONE) */}
+      {/* 🍎 BANNER INSTRUCTIVO PARA IOS (IPHONE & IPAD) */}
       {showIOSPrompt && !deferredPrompt && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -111,7 +107,6 @@ export function InstallPWA() {
           className="fixed bottom-6 left-0 right-0 z-[100] mx-auto w-full max-w-[400px] px-4"
         >
           <div className="relative flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-[#0d0f1a]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-            {/* 👇 Aplicamos la nueva función handleDismiss */}
             <button
               onClick={handleDismiss}
               className="absolute right-3 top-3 text-zinc-500 hover:text-white"
@@ -124,7 +119,7 @@ export function InstallPWA() {
               </div>
               <div className="flex-1">
                 <p className="font-display text-[12px] font-black text-white leading-tight">
-                  Instala la App en tu iPhone
+                  Instala la App en tu Dispositivo
                 </p>
                 <p className="text-[10px] font-medium text-zinc-400 mt-0.5 leading-snug">
                   Para no perder el VIP, instálala nativamente.

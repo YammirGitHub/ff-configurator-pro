@@ -5,6 +5,7 @@ import { DeviceBrand } from "@/entities/device/types";
 import { computeProConfig } from "@/features/calculator/math";
 import { auth, db } from "@/shared/config/firebase";
 import { PremiumModal } from "@/shared/ui/PremiumModal";
+import { triggerHaptic } from "@/shared/utils/haptics"; // 👈 IMPORTADO PARA EL FIX DE HAPTICS
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -138,15 +139,12 @@ export default function Home() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // 👇 AQUÍ ESTÁ EL CÓDIGO MAESTRO DEL CONFIGURADOR
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/login");
       } else {
         setUserEmail(user.email || "");
-
-        // 👇 TE DA VIP INMEDIATO SI ERES EL ADMIN
         const isAdmin = user.email === "jjhor24@gmail.com";
 
         try {
@@ -195,10 +193,10 @@ export default function Home() {
 
       setSavedConfigs(updatedConfigs);
       setSaveMsg("¡Guardado! ☁️");
-      // 👇 VIBRACIÓN LIGERA: Un toque seco de confirmación
-      if (typeof window !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(50);
-      }
+
+      // 👇 FIX BUG 2: Vibración segura que no crashea en Safari iOS
+      triggerHaptic("light");
+
       setTimeout(() => setSaveMsg(""), 3000);
     } catch (error) {
       setSaveMsg("Error ❌");
@@ -233,10 +231,8 @@ export default function Home() {
   const handleGenerateClick = () => {
     if (!isVip) {
       setShowPremiumModal(true);
-      // 👇 VIBRACIÓN DE ERROR: 3 toques rápidos (solo Android)
-      if (typeof window !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([50, 50, 50, 50, 50]);
-      }
+      // 👇 FIX BUG 2: Notificación táctil de denegación segura para iOS y Android
+      triggerHaptic("error");
       return;
     }
 
@@ -244,23 +240,26 @@ export default function Home() {
     setResult(computeProConfig(selectedDevice, dpiMode, firePref));
     setScale(1);
 
-    // 👇 VIBRACIÓN DE ÉXITO (CLÍMAX VIP): Latido fuerte (solo Android)
-    if (typeof window !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([100, 50, 200]);
-    }
+    // 👇 FIX BUG 2: Latido premium de éxito universal
+    triggerHaptic("success");
   };
-  // 👇 FIX SENIOR: Observador de Scroll Automático
-  // Vigila cuándo aparece el "result" y espera a que termine la animación visual
-  // Reemplazar el useEffect del Observador de Scroll Automático por este:
+
+  // 👇 FIX BUG 1: Observador de Scroll a prueba de fugas de memoria con desmonte limpio
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (result && window.innerWidth < 1024) {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         window.scrollTo({
           top: document.body.scrollHeight,
           behavior: "smooth",
         });
       }, 350);
     }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [result]);
 
   const handleBrandChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -367,10 +366,8 @@ export default function Home() {
     );
   }
 
-  // Cambia el contenedor principal (div superior) para usar cálculo dinámico con el Notch
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-[calc(var(--spacing-safe-top)+6rem)] pb-safe-bottom sm:px-8 lg:gap-8 lg:px-12 lg:pt-[calc(var(--spacing-safe-top)+8rem)]">
-      {/* El resto de tu código del Modal, Bóveda y configurador sigue exactamente igual... */}
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[1400px] flex-col gap-6 px-4 pt-28 pb-12 sm:px-8 lg:gap-8 lg:px-12 lg:pt-36">
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
