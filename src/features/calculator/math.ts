@@ -119,24 +119,29 @@ export function computeProConfig(
 
   // 7. CORSÉ MATEMÁTICO ANTI-TEMBLOR / ANTI-PECHO
   // Evita que la mira tiemble en Gama Alta y que se pegue al pecho en Gama Baja
+
+  // Límite seguro: Nunca puede superar 200
+  const maxRedDot = Math.min(sensConfig.general + 22, 200);
+  const minRedDot = Math.min(sensConfig.general + 8, 200);
+
   sensConfig.redDot = clamp(
     sensConfig.redDot,
-    sensConfig.general + 8,   // Suficiente fuerza para despegar del pecho
-    sensConfig.general + 22   // Límite de estabilidad craneal
+    minRedDot,   // Suficiente fuerza para despegar del pecho
+    maxRedDot    // Límite de estabilidad craneal
   );
 
   // Desaceleración logarítmica para miras telescópicas (Tracking suave)
+  // Límite seguro: No puede ser menor a 0 ni mayor a 200
   sensConfig.scope2x = clamp(
     sensConfig.scope2x,
-    sensConfig.redDot - 16,
-    sensConfig.redDot - 6
+    Math.max(sensConfig.redDot - 16, 0),
+    Math.max(sensConfig.redDot - 6, 0)
   );
 
   sensConfig.scope4x = clamp(
     sensConfig.scope4x,
-    sensConfig.scope2x - 14,
-    sensConfig.scope2x - 4
+    Math.max(sensConfig.scope2x - 14, 0),
+    Math.max(sensConfig.scope2x - 4, 0)
   );
-
   return { sensConfig, optimalButtonSize, realDpi, usedDpi, tier };
 }
